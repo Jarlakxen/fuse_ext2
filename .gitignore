@@ -7,5 +7,6 @@ makefile
 *.d
 *.mk
 *.a
+*.disk
 Release
 Debug
