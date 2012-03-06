@@ -35,6 +35,15 @@
 	#define EXT2_GOOD_OLD_REV	0	//Revision 0
 	#define EXT2_DYNAMIC_REV	1	//Revision 1 with variable inode sizes, extended attributes, etc.
 
+	// t_ext2_inode -> rev_level
+	#define EXT2_IFSOCK	0xC000	//socket
+	#define EXT2_IFLNK	0xA000	//symbolic link
+	#define EXT2_IFREG	0x8000	//regular file
+	#define EXT2_IFBLK	0x6000	//block device
+	#define EXT2_IFDIR	0x4000	//directory
+	#define EXT2_IFCHR	0x2000	//character device
+	#define EXT2_IFIFO	0x1000	//fifo
+
 	typedef struct {
 		uint32_t inodecount;
 		uint32_t blockcount;
@@ -61,6 +70,19 @@
 		uint32_t rev_level;
 		uint16_t def_resuid;
 		uint16_t def_resgid;
+
+		//-- EXT2_DYNAMIC_REV Specific --
+		uint32_t first_ino;
+		uint16_t inode_size;
+		uint16_t block_group_nr;
+		uint32_t feature_compat;
+		uint32_t feature_incompat;
+		uint32_t feature_ro_compat;
+		uint8_t uuid[16];
+		uint8_t volume_name[16];
+		uint8_t last_mounted[64];
+		uint32_t algo_bitmap;
+
 	}__attribute__ ((packed)) t_ext2_superblock;
 
 	typedef struct {
@@ -75,24 +97,24 @@
 	}__attribute__ ((packed)) t_ext2_block_group_descriptor;
 
 	typedef struct {
-		uint16_t i_mode;
-		uint16_t i_uid;
-		uint32_t i_size;
-		uint32_t i_atime;
-		uint32_t i_ctime;
-		uint32_t i_mtime;
-		uint32_t i_dtime;
-		uint16_t i_gid;
-		uint16_t i_links_count;
-		uint32_t i_blocks;
-		uint32_t i_flags;
-		uint32_t i_osd1;
-		uint32_t i_block[15];
-		uint32_t i_generation;
-		uint32_t i_file_acl;
-		uint32_t i_dir_acl;
-		uint32_t i_faddr;
-		uint8_t i_osd2[12];
+		uint16_t mode;
+		uint16_t uid;
+		uint32_t size;
+		uint32_t atime;
+		uint32_t ctime;
+		uint32_t mtime;
+		uint32_t dtime;
+		uint16_t gid;
+		uint16_t links_count;
+		uint32_t blocks;
+		uint32_t flags;
+		uint32_t osd1;
+		uint32_t block[15];
+		uint32_t generation;
+		uint32_t file_acl;
+		uint32_t dir_acl;
+		uint32_t faddr;
+		uint8_t osd2[12];
 	}__attribute__ ((packed)) t_ext2_inode;
 
 	typedef struct {
@@ -116,10 +138,10 @@
 	} t_ext2;
 
 	t_ext2				*ext2_create(char *device);
-	uint8_t 			*ext2_get_block(t_ext2 *, uint32_t block_number);
-	t_ext2_block_group	*ext2_get_block_group(t_ext2*, uint32_t group_number);
+	uint8_t 			*ext2_get_block(t_ext2 *, uint16_t block_number);
+	t_ext2_block_group	*ext2_get_block_group(t_ext2*, uint16_t group_number);
 	uint32_t 			 ext2_get_number_of_block_group(t_ext2 *);
-	bool 	 			 ext2_has_superblock(uint32_t group_number);
+	bool 	 			 ext2_has_superblock(uint16_t group_number);
 	uint32_t 	 		 ext2_get_block_size(t_ext2 *);
 
 #endif /* EXT2_H_ */

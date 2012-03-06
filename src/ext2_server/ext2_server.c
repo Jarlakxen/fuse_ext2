@@ -42,3 +42,8 @@ t_ext2_server *ext2_server_create(char* device_path){
 
 	return ext2_server;
 }
+
+void ext2_server_run(t_ext2_server *self){
+
+	t_ext2_block_group *root = ext2_get_block_group(self->fs, 0);
+}

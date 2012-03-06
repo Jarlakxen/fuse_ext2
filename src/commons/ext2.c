@@ -20,7 +20,7 @@ t_ext2 *ext2_create(char *device) {
 	return fs;
 }
 
-uint8_t *ext2_get_block(t_ext2 *self, uint32_t block_number){
+inline uint8_t *ext2_get_block(t_ext2 *self, uint16_t block_number){
 	if( self->superblock->blockcount <= block_number ){
 		return NULL;
 	}
@@ -28,7 +28,7 @@ uint8_t *ext2_get_block(t_ext2 *self, uint32_t block_number){
 	return self->device + (block_number * ext2_get_block_size(self));
 }
 
-t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint32_t group_number){
+t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint16_t group_number){
 
 	if( ext2_get_number_of_block_group(self) <= group_number ){
 		return NULL;
@@ -50,19 +50,19 @@ t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint32_t group_number){
 	uint8_t *inode_bitmap;
 
 	if( block_group->has_superblock ){
-		block_group->superblock = (void*)(self->device + first_block * ext2_get_block_size(self));
+		block_group->superblock = (void*)ext2_get_block(self, first_block);
 		first_block++;
-		block_group->block_group_descriptor = (void*)(self->device + first_block * ext2_get_block_size(self));
+		block_group->block_group_descriptor = (void*)ext2_get_block(self, first_block);
 		first_block++;
-		block_bitmap = self->device + block_group->block_group_descriptor->block_bitmap * ext2_get_block_size(self);
-		inode_bitmap = self->device + block_group->block_group_descriptor->inode_bitmap * ext2_get_block_size(self);
+		block_bitmap = ext2_get_block(self, block_group->block_group_descriptor->block_bitmap);
+		inode_bitmap = ext2_get_block(self, block_group->block_group_descriptor->inode_bitmap);
 		block_group->inodes_table = (void*)(self->device + block_group->block_group_descriptor->inode_table * ext2_get_block_size(self));
 	} else {
-		block_bitmap = self->device + first_block * ext2_get_block_size(self);
+		block_bitmap = ext2_get_block(self, first_block);
 		first_block++;
-		inode_bitmap = self->device + first_block * ext2_get_block_size(self);
+		inode_bitmap = ext2_get_block(self, first_block);
 		first_block++;
-		block_group->inodes_table = (void*)(self->device + first_block * ext2_get_block_size(self));
+		block_group->inodes_table = (void*)ext2_get_block(self, first_block);
 		first_block++;
 	}
 
@@ -73,10 +73,10 @@ t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint32_t group_number){
 }
 
 inline uint32_t ext2_get_number_of_block_group(t_ext2 *self){
-	return floor((double)(self->superblock->blockcount) / (double)(self->superblock->blockper_group));
+	return floor((double)(self->superblock->blockcount - self->superblock->first_data_block) / (double)(self->superblock->blockper_group));
 }
 
-bool ext2_has_superblock(uint32_t group_number) {
+bool ext2_has_superblock(uint16_t group_number) {
 
 	if (group_number == 0 || group_number == 1) {
 		return true;
