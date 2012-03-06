@@ -9,6 +9,9 @@
 #define EXT2_H_
 
 	#include <stdint.h>
+	#include <stdbool.h>
+
+	#include "bitarray.h"
 
 	#define EXT2_SUPER_MAGIC	0xEF53
 
@@ -72,10 +75,51 @@
 	}__attribute__ ((packed)) t_ext2_block_group_descriptor;
 
 	typedef struct {
+		uint16_t i_mode;
+		uint16_t i_uid;
+		uint32_t i_size;
+		uint32_t i_atime;
+		uint32_t i_ctime;
+		uint32_t i_mtime;
+		uint32_t i_dtime;
+		uint16_t i_gid;
+		uint16_t i_links_count;
+		uint32_t i_blocks;
+		uint32_t i_flags;
+		uint32_t i_osd1;
+		uint32_t i_block[15];
+		uint32_t i_generation;
+		uint32_t i_file_acl;
+		uint32_t i_dir_acl;
+		uint32_t i_faddr;
+		uint8_t i_osd2[12];
+	}__attribute__ ((packed)) t_ext2_inode;
+
+	typedef struct {
+		uint32_t number;
+		uint32_t first_block;
+		bool has_superblock;
+
+		t_ext2_superblock *superblock;
+		t_ext2_block_group_descriptor *block_group_descriptor;
+
+		t_bitarray *block_bitmap;
+		t_bitarray *inode_bitmap;
+
+		t_ext2_inode *inodes_table;
+
+	} t_ext2_block_group;
+
+	typedef struct {
 		uint8_t *device;
 		t_ext2_superblock *superblock;
 	} t_ext2;
 
-	t_ext2 *ext2_create(char *device);
+	t_ext2				*ext2_create(char *device);
+	uint8_t 			*ext2_get_block(t_ext2 *, uint32_t block_number);
+	t_ext2_block_group	*ext2_get_block_group(t_ext2*, uint32_t group_number);
+	uint32_t 			 ext2_get_number_of_block_group(t_ext2 *);
+	bool 	 			 ext2_has_superblock(uint32_t group_number);
+	uint32_t 	 		 ext2_get_block_size(t_ext2 *);
 
 #endif /* EXT2_H_ */

@@ -8,7 +8,7 @@
 #ifndef EXT2_SERVER_H_
 #define EXT2_SERVER_H_
 
-	#include "../includes/ext2.h"
+	#include "../commons/ext2.h"
 
 	typedef struct{
 		char* device_path;
