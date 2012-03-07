@@ -4,6 +4,15 @@
 #include <math.h>
 #include "ext2.h"
 
+
+static t_ext2_block_group *ext2_get_block_group(t_ext2*, uint16_t group_number);
+static uint32_t ext2_get_number_of_block_group(t_ext2 *);
+
+//  ---  Block Group Functions  ---
+static t_ext2_block_group *ext2_create_block_group(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size);
+static void ext2_free_block_group(t_ext2_block_group *block_group);
+
+
 t_ext2 *ext2_create(char *device) {
 	t_ext2 *fs = malloc(sizeof(t_ext2));
 
@@ -17,6 +26,9 @@ t_ext2 *ext2_create(char *device) {
 		exit(EXIT_FAILURE);
 	}
 
+	fs->block_size = ext2_get_block_size(fs);
+	fs->number_of_block_groups = ext2_get_number_of_block_group(fs);
+
 	return fs;
 }
 
@@ -25,50 +37,67 @@ inline uint8_t *ext2_get_block(t_ext2 *self, uint16_t block_number){
 		return NULL;
 	}
 
-	return self->device + (block_number * ext2_get_block_size(self));
+	return self->device + (block_number * self->block_size);
 }
 
 t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint16_t group_number){
 
-	if( ext2_get_number_of_block_group(self) <= group_number ){
+	if( self->number_of_block_groups <= group_number ){
 		return NULL;
 	}
 
-	t_ext2_block_group *block_group = malloc( sizeof(t_ext2_block_group) );
-
-	memset(block_group, 0, sizeof(t_ext2_block_group));
-
-	block_group->number = group_number;
-
 	uint32_t first_block = (group_number * self->superblock->blockper_group) + self->superblock->first_data_block;
 
-	block_group->first_block = first_block;
+	bool has_superblock = ext2_has_superblock(group_number);
 
-	block_group->has_superblock = ext2_has_superblock(group_number);
+	void *superblock = NULL;
+	void *block_group_descriptor = NULL;
+	void *block_bitmap = NULL;
+	void *inode_bitmap = NULL;
+	void *inodes_table = NULL;
 
-	uint8_t *block_bitmap;
-	uint8_t *inode_bitmap;
-
-	if( block_group->has_superblock ){
-		block_group->superblock = (void*)ext2_get_block(self, first_block);
+	if( has_superblock ){
+		superblock = ext2_get_block(self, first_block);
 		first_block++;
-		block_group->block_group_descriptor = (void*)ext2_get_block(self, first_block);
+		block_group_descriptor = ext2_get_block(self, first_block);
 		first_block++;
-		block_bitmap = ext2_get_block(self, block_group->block_group_descriptor->block_bitmap);
-		inode_bitmap = ext2_get_block(self, block_group->block_group_descriptor->inode_bitmap);
-		block_group->inodes_table = (void*)(self->device + block_group->block_group_descriptor->inode_table * ext2_get_block_size(self));
+		block_bitmap = ext2_get_block(self, ((t_ext2_block_group_descriptor*)block_group_descriptor)->block_bitmap);
+		inode_bitmap = ext2_get_block(self, ((t_ext2_block_group_descriptor*)block_group_descriptor)->inode_bitmap);
+		inodes_table = ext2_get_block(self, ((t_ext2_block_group_descriptor*)block_group_descriptor)->inode_table);
 	} else {
 		block_bitmap = ext2_get_block(self, first_block);
 		first_block++;
 		inode_bitmap = ext2_get_block(self, first_block);
 		first_block++;
-		block_group->inodes_table = (void*)ext2_get_block(self, first_block);
+		inodes_table = ext2_get_block(self, first_block);
 		first_block++;
 	}
 
-	block_group->block_bitmap = bitarray_create(block_bitmap, ext2_get_block_size(self));
-	block_group->inode_bitmap = bitarray_create(inode_bitmap, ext2_get_block_size(self));
+	t_ext2_block_group *block_group = ext2_create_block_group(group_number, first_block, has_superblock, block_bitmap, inode_bitmap, self->block_size);
 
+	block_group->superblock = superblock;
+	block_group->block_group_descriptor = block_group_descriptor;
+	block_group->inodes_table = inodes_table;
+
+	return block_group;
+}
+
+inline t_ext2_inode	*ext2_get_root_inode(t_ext2 *self){
+	t_ext2_block_group *block_group = ext2_get_block_group(self, 0);
+	t_ext2_inode *inode = block_group->inodes_table[EXT2_ROOT_INODE_INDEX];
+	return inode;
+}
+
+t_list *ext2_list_dir(t_ext2 *self, char dir_path){
+
+	if( strcmp("/", dir_path) == 0 ){
+		return ext2_list_inode(self, ext2_get_root_inode(self));
+	}
+
+	return NULL;
+}
+
+inline t_list *ext2_list_inode(t_ext2 *self, t_ext2_inode root){
 	return NULL;
 }
 
@@ -91,4 +120,29 @@ bool ext2_has_superblock(uint16_t group_number) {
 
 inline uint32_t ext2_get_block_size(t_ext2 *self){
 	return 1024 << self->superblock->log_block_size;
+}
+
+// ---------------------------------------------------------------------------------
+// ------------------------------ INTERNAL FUNCTIONS -------------------------------
+// ---------------------------------------------------------------------------------
+
+inline static t_ext2_block_group *ext2_create_block_group(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size){
+	t_ext2_block_group *block_group = malloc( sizeof(t_ext2_block_group) );
+
+	memset(block_group, 0, sizeof(t_ext2_block_group));
+
+	block_group->number = group_number;
+	block_group->first_block = first_block;
+	block_group->has_superblock = has_superblock;
+
+	block_group->block_bitmap = bitarray_create(block_bitmap, block_size);
+	block_group->inode_bitmap = bitarray_create(inode_bitmap, block_size);
+
+	return block_group;
+}
+
+inline static void ext2_free_block_group(t_ext2_block_group *block_group){
+	bitarray_destroy(block_group->block_bitmap);
+	bitarray_destroy(block_group->inode_bitmap);
+	free(block_group);
 }
