@@ -177,7 +177,7 @@
 
 	t_ext2_inode 		*ext2_get_root_inode(t_ext2 *);
 
-	t_list		 		*ext2_list_dir(t_ext2 *, char dir_path);
+	t_list		 		*ext2_list_dir(t_ext2 *, char *dir_path);
 
 	bool 	 			 ext2_has_superblock(uint16_t group_number);
 	uint32_t 	 		 ext2_get_block_size(t_ext2 *);

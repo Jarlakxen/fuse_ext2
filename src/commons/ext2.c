@@ -5,6 +5,10 @@
 #include "ext2.h"
 
 
+static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
+
+static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
+
 static t_ext2_block_group *ext2_get_block_group(t_ext2*, uint16_t group_number);
 static uint32_t ext2_get_number_of_block_group(t_ext2 *);
 
@@ -84,11 +88,12 @@ t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint16_t group_number){
 
 inline t_ext2_inode	*ext2_get_root_inode(t_ext2 *self){
 	t_ext2_block_group *block_group = ext2_get_block_group(self, 0);
-	t_ext2_inode *inode = block_group->inodes_table[EXT2_ROOT_INODE_INDEX];
+	t_ext2_inode *inode = &block_group->inodes_table[EXT2_ROOT_INODE_INDEX];
+	ext2_free_block_group(block_group);
 	return inode;
 }
 
-t_list *ext2_list_dir(t_ext2 *self, char dir_path){
+t_list *ext2_list_dir(t_ext2 *self, char *dir_path){
 
 	if( strcmp("/", dir_path) == 0 ){
 		return ext2_list_inode(self, ext2_get_root_inode(self));
@@ -97,8 +102,46 @@ t_list *ext2_list_dir(t_ext2 *self, char dir_path){
 	return NULL;
 }
 
-inline t_list *ext2_list_inode(t_ext2 *self, t_ext2_inode root){
-	return NULL;
+inline static t_list *ext2_list_inode(t_ext2 *self, t_ext2_inode *root) {
+
+	if (!EXT2_INODE_HAS_MODE_FLAG(root, EXT2_IFDIR)) {
+		return NULL;
+	}
+
+	t_list *list = list_create();
+
+	int block_amount = root->blocks / (2 << self->superblock->log_block_size);
+
+	int cont;
+
+	for (cont = 0; cont < block_amount; cont++) {
+		if (root->block[cont] != 0) {
+			ext2_get_block_directory_entrys(self, ext2_get_block(self, root->block[cont]), list);
+		}
+	}
+
+	return list;
+}
+
+static t_list *ext2_get_block_directory_entrys(t_ext2 *self, uint8_t *block, t_list *list_to_fill){
+
+	int offset = 0;
+
+	while( offset < self->block_size ){
+		t_ext2_directory_entry *entry = (t_ext2_directory_entry*)(block + offset);
+
+		if( entry->inode != 0 ){
+			char *name = calloc(1, entry->name_len);
+
+			memcpy(name, entry->name, entry->name_len);
+
+			list_add(list_to_fill, name);
+		}
+
+		offset = offset + entry->rec_len;
+	}
+
+	return list_to_fill;
 }
 
 inline uint32_t ext2_get_number_of_block_group(t_ext2 *self){
