@@ -165,6 +165,13 @@
 	} __attribute__ ((packed)) t_ext2_directory_entry;
 
 	typedef struct {
+		uint32_t inode_index;
+		char *name;
+		t_ext2_inode *inode;
+	} t_ext2_inode_entry;
+
+
+	typedef struct {
 		uint8_t *device;
 		t_ext2_superblock *superblock;
 		uint32_t block_size;
@@ -177,9 +184,15 @@
 
 	t_ext2_inode 		*ext2_get_root_inode(t_ext2 *);
 
+	t_ext2_inode		*ext2_get_inode(t_ext2 *, uint32_t inode_index);
+
 	t_list		 		*ext2_list_dir(t_ext2 *, char *dir_path);
+
+	t_ext2_inode 		*ext2_get_element_inode(t_ext2 *, char *path);
 
 	bool 	 			 ext2_has_superblock(uint16_t group_number);
 	uint32_t 	 		 ext2_get_block_size(t_ext2 *);
+
+	void				 ext2_inode_entry_free(t_ext2_inode_entry*);
 
 #endif /* EXT2_H_ */

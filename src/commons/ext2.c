@@ -2,20 +2,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
 #include "ext2.h"
+
+#include "../commons/string_utils.h"
 
 
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
 
 static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
+static t_ext2_inode *ext2_find_inode(t_ext2 *self, t_ext2_inode *root,  char **path);
 
 static t_ext2_block_group *ext2_get_block_group(t_ext2*, uint16_t group_number);
 static uint32_t ext2_get_number_of_block_group(t_ext2 *);
 
 //  ---  Block Group Functions  ---
-static t_ext2_block_group *ext2_create_block_group(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size);
-static void ext2_free_block_group(t_ext2_block_group *block_group);
+static t_ext2_block_group *ext2_block_group_create(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size);
+static void ext2_block_group_free(t_ext2_block_group *block_group);
 
+//  ---  iNodes Entries Functions  ---
+t_ext2_inode_entry *ext2_inode_entry_create(t_ext2 *fs, t_ext2_directory_entry *dir_entry);
 
 t_ext2 *ext2_create(char *device) {
 	t_ext2 *fs = malloc(sizeof(t_ext2));
@@ -77,7 +83,7 @@ t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint16_t group_number){
 		first_block++;
 	}
 
-	t_ext2_block_group *block_group = ext2_create_block_group(group_number, first_block, has_superblock, block_bitmap, inode_bitmap, self->block_size);
+	t_ext2_block_group *block_group = ext2_block_group_create(group_number, first_block, has_superblock, block_bitmap, inode_bitmap, self->block_size);
 
 	block_group->superblock = superblock;
 	block_group->block_group_descriptor = block_group_descriptor;
@@ -89,17 +95,71 @@ t_ext2_block_group *ext2_get_block_group(t_ext2 *self, uint16_t group_number){
 inline t_ext2_inode	*ext2_get_root_inode(t_ext2 *self){
 	t_ext2_block_group *block_group = ext2_get_block_group(self, 0);
 	t_ext2_inode *inode = &block_group->inodes_table[EXT2_ROOT_INODE_INDEX];
-	ext2_free_block_group(block_group);
+	ext2_block_group_free(block_group);
+	return inode;
+}
+
+t_ext2_inode *ext2_get_inode(t_ext2 *self, uint32_t inode_index){
+	uint16_t block_group_index = (inode_index - 1) / self->superblock->inodeper_group;
+	uint32_t local_index = (inode_index - 1) % self->superblock->inodeper_group;
+
+	t_ext2_block_group *block_group = ext2_get_block_group(self, block_group_index);
+	t_ext2_inode *inode = &block_group->inodes_table[local_index];
+	ext2_block_group_free(block_group);
+
 	return inode;
 }
 
 t_list *ext2_list_dir(t_ext2 *self, char *dir_path){
+	t_ext2_inode *inode = ext2_get_element_inode(self, dir_path);
 
-	if( strcmp("/", dir_path) == 0 ){
-		return ext2_list_inode(self, ext2_get_root_inode(self));
+	if( inode == NULL ){
+		return NULL;
 	}
 
-	return NULL;
+	return ext2_list_inode(self, inode);
+}
+
+t_ext2_inode *ext2_get_element_inode(t_ext2 *self, char *path){
+	if( strcmp("/", path) == 0 ){
+		return ext2_get_root_inode(self);
+	}
+
+	char **path_stack = string_utils_split(path+1,"/");
+
+	t_ext2_inode *inode = ext2_find_inode(self, ext2_get_root_inode(self), path_stack);
+
+	int index = 0;
+	for(; path_stack[index] != NULL ;index++){
+		free(path_stack[index]);
+	}
+	free(path_stack);
+
+	return inode;
+}
+
+inline static t_ext2_inode *ext2_find_inode(t_ext2 *self, t_ext2_inode *root,  char **path) {
+
+	if( path[0] == NULL ){
+		return root;
+	}
+
+	t_list *subelements = ext2_list_inode(self, root);
+
+	bool _find_inode(t_ext2_inode_entry *entry){
+		return strcmp(path[0], entry->name) == 0;
+	}
+
+	t_ext2_inode *inode = list_find(subelements, (void*)_find_inode);
+
+	list_destroy_and_destroy_elements(subelements, (void*)ext2_inode_entry_free);
+
+	if( inode == NULL ){
+		return NULL;
+	}
+
+	return ext2_find_inode(self, inode, &path[1]);
+
 }
 
 inline static t_list *ext2_list_inode(t_ext2 *self, t_ext2_inode *root) {
@@ -131,11 +191,7 @@ static t_list *ext2_get_block_directory_entrys(t_ext2 *self, uint8_t *block, t_l
 		t_ext2_directory_entry *entry = (t_ext2_directory_entry*)(block + offset);
 
 		if( entry->inode != 0 ){
-			char *name = calloc(1, entry->name_len);
-
-			memcpy(name, entry->name, entry->name_len);
-
-			list_add(list_to_fill, name);
+			list_add(list_to_fill, ext2_inode_entry_create(self, entry));
 		}
 
 		offset = offset + entry->rec_len;
@@ -169,7 +225,7 @@ inline uint32_t ext2_get_block_size(t_ext2 *self){
 // ------------------------------ INTERNAL FUNCTIONS -------------------------------
 // ---------------------------------------------------------------------------------
 
-inline static t_ext2_block_group *ext2_create_block_group(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size){
+inline static t_ext2_block_group *ext2_block_group_create(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size){
 	t_ext2_block_group *block_group = malloc( sizeof(t_ext2_block_group) );
 
 	memset(block_group, 0, sizeof(t_ext2_block_group));
@@ -184,8 +240,27 @@ inline static t_ext2_block_group *ext2_create_block_group(uint16_t group_number,
 	return block_group;
 }
 
-inline static void ext2_free_block_group(t_ext2_block_group *block_group){
+inline static void ext2_block_group_free(t_ext2_block_group *block_group){
 	bitarray_destroy(block_group->block_bitmap);
 	bitarray_destroy(block_group->inode_bitmap);
 	free(block_group);
+}
+
+t_ext2_inode_entry *ext2_inode_entry_create(t_ext2 *fs, t_ext2_directory_entry *dir_entry){
+	t_ext2_inode_entry *inode_entry = malloc( sizeof(t_ext2_inode_entry) );
+
+	inode_entry->inode_index = dir_entry->inode;
+
+	inode_entry->name = malloc( dir_entry->name_len + 1 );
+	memcpy(inode_entry->name, dir_entry->name, dir_entry->name_len);
+	inode_entry->name[dir_entry->name_len] = '\0';
+
+	inode_entry->inode = ext2_get_inode(fs, dir_entry->inode);
+
+	return inode_entry;
+}
+
+void ext2_inode_entry_free(t_ext2_inode_entry *self){
+	free(self->name);
+	free(self);
 }

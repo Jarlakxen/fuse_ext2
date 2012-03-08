@@ -12,12 +12,15 @@
 
 #include "ext2_server.h"
 
+#define FS_FULL_READ_PRIV	S_IREAD | S_IRGRP | S_IROTH
+#define FS_FULL_WRITE_PRIV	 S_IWRITE | S_IWGRP | S_IWOTH
 
 static t_ext2_server *ext2_server;
 
 // -----------  RPC Functions  -----------------
-static void ext2_service__read_dir(RpcLayer__Ext2Services_Service *, const RpcLayer__ReadDirRequest *, RpcLayer__ReadDirResponse_Closure, void *);
-static RpcLayer__Ext2Services_Service ext2_service = RPC_LAYER__EXT2_SERVICES__INIT(ext2_service__);
+static void ext2_service__read_dir(RpcLayer__RemoteExt2_Service *, const RpcLayer__ReadDirRequest *, RpcLayer__ReadDirResponse_Closure, void *);
+static void ext2_service__get_attr(RpcLayer__RemoteExt2_Service *, const RpcLayer__GetAttrRequest *, RpcLayer__GetAttrResponse_Closure, void *);
+static RpcLayer__RemoteExt2_Service ext2_service = RPC_LAYER__REMOTE_EXT2__INIT(ext2_service__);
 
 
 t_ext2_server *ext2_server_create(char* device_path){
@@ -65,14 +68,14 @@ void ext2_server_run(t_ext2_server *self){
 
 }
 
-static void ext2_service__read_dir(RpcLayer__Ext2Services_Service *service,
+static void ext2_service__read_dir(RpcLayer__RemoteExt2_Service *service,
 									const RpcLayer__ReadDirRequest *request,
 									RpcLayer__ReadDirResponse_Closure closure,
 									void *closure_data) {
 
 	RpcLayer__ReadDirResponse response = RPC_LAYER__READ_DIR_RESPONSE__INIT;
 
-	t_list *elements = ext2_list_dir(ext2_server->fs, "/");
+	t_list *elements = ext2_list_dir(ext2_server->fs, request->path);
 
 	if (elements != NULL && list_size(elements) > 0) {
 
@@ -81,7 +84,8 @@ static void ext2_service__read_dir(RpcLayer__Ext2Services_Service *service,
 
 		int index;
 		for(index = 0; index < list_size(elements); index ++){
-			response.elements[index] = list_get(elements, index);
+			t_ext2_inode_entry *entry = list_get(elements, index);
+			response.elements[index] = entry->name;
 		}
 
 	} else {
@@ -90,7 +94,36 @@ static void ext2_service__read_dir(RpcLayer__Ext2Services_Service *service,
 
 	closure(&response, closure_data);
 
-	list_destroy_and_destroy_elements(elements, free);
+	if (elements != NULL){
+		list_destroy_and_destroy_elements(elements, (void*)ext2_inode_entry_free);
+	}
+}
+
+static void ext2_service__get_attr(RpcLayer__RemoteExt2_Service *service,
+									const RpcLayer__GetAttrRequest *request,
+									RpcLayer__GetAttrResponse_Closure closure,
+									void *closure_data){
+
+	RpcLayer__GetAttrResponse response = RPC_LAYER__GET_ATTR_RESPONSE__INIT;
+
+	t_ext2_inode *element = ext2_get_element_inode(ext2_server->fs, request->path);
+
+	if( element != NULL ){
+		response.fileexist = true;
+
+		if( EXT2_INODE_HAS_MODE_FLAG(element, EXT2_IFDIR) ){
+			response.mode = S_IFDIR | FS_FULL_READ_PRIV;
+		} else {
+			response.mode = S_IFREG | FS_FULL_READ_PRIV | FS_FULL_WRITE_PRIV;
+		}
+
+		response.nlinks = element->links_count;
+		response.size = element->size;
+	} else {
+		response.fileexist = false;
+	}
+
+	closure(&response, closure_data);
 }
 
 int main(int argc, char **argv) {

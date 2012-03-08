@@ -10,6 +10,36 @@
 
 ProtobufCService *service;
 
+static int fuse_ext2_getattr(const char *path, struct stat *stbuf) {
+	int res = 0;
+
+	RpcLayer__GetAttrRequest query = RPC_LAYER__GET_ATTR_REQUEST__INIT;
+	protobuf_c_boolean is_done = 0;
+
+	query.path = strdup(path);
+
+	void _handle_response(const RpcLayer__GetAttrResponse *result, void *closure_data) {
+
+		*(protobuf_c_boolean *) closure_data = 1;
+
+		if( !result->fileexist ) {
+			res = -ENOENT;
+			return;
+		}
+
+		stbuf->st_mode = result->mode;
+		stbuf->st_size = result->size;
+		stbuf->st_nlink = result->nlinks;
+	}
+
+	rpc_layer__remote_ext2__get_attr(service, &query, _handle_response, &is_done);
+
+	while (!is_done)
+		protobuf_c_dispatch_run(protobuf_c_dispatch_default());
+
+	return res;
+}
+
 static int fuse_ext2_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
 	RpcLayer__ReadDirRequest query = RPC_LAYER__READ_DIR_REQUEST__INIT;
 	protobuf_c_boolean is_done = 0;
@@ -37,7 +67,7 @@ static int fuse_ext2_readdir(const char *path, void *buf, fuse_fill_dir_t filler
 }
 
 static struct fuse_operations ext2_operations = {
-        //.getattr = NULL,
+        .getattr = fuse_ext2_getattr,
         .readdir = fuse_ext2_readdir
 };
 
