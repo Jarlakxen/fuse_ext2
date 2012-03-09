@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <google/protobuf-c/protobuf-c-rpc.h>
 
-#include "../commons/rpc_layer.pb-c.h"
+#include <rpc_layer.pb-c.h>
 
 ProtobufCService *service;
 

@@ -5,7 +5,7 @@
 
 #include "ext2.h"
 
-#include "../commons/string_utils.h"
+#include "string_utils.h"
 
 
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
