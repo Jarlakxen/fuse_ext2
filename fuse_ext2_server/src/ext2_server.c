@@ -136,9 +136,29 @@ static void ext2_service__read(RpcLayer__RemoteExt2_Service *service,
 
 	t_ext2_inode *element = ext2_get_element_inode(ext2_server->fs, request->path);
 
-	if( element != NULL ){
-
+	if( element == NULL ){
+		response.error = true;
+		closure(&response, closure_data);
+		return;
 	}
+
+	if( request->offset > element->size ){
+		response.data.len = 0;
+		closure(&response, closure_data);
+		return;
+	}
+
+	size_t size_to_read = request->length;
+	if( request->offset + request->length > element->size ){
+		size_to_read = element->size - request->offset;
+	}
+
+	uint8_t buff[size_to_read];
+
+	response.data.data = buff;
+	response.data.len = size_to_read;
+
+	ext2_read_inode_data(ext2_server->fs, element, request->offset, size_to_read, buff);
 
 	closure(&response, closure_data);
 }

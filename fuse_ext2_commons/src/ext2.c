@@ -5,7 +5,7 @@
 
 #include "ext2.h"
 
-#include "string_utils.h"
+#include "string.h"
 
 
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
@@ -134,7 +134,7 @@ t_ext2_inode *ext2_get_element_inode(t_ext2 *self, char *path){
 		return ext2_get_root_inode(self);
 	}
 
-	char **path_stack = string_utils_split(path+1,"/");
+	char **path_stack = string_split(path+1,"/");
 
 	t_ext2_inode *inode = ext2_find_inode(self, ext2_get_root_inode(self), path_stack);
 
@@ -242,6 +242,40 @@ static t_list *ext2_get_block_directory_entrys(t_ext2 *self, uint8_t *block, t_l
 	}
 
 	return list_to_fill;
+}
+
+void ext2_read_inode_data(t_ext2 *self, t_ext2_inode *inode, off_t offset, size_t size, uint8_t *buff){
+	long blocks_offset = offset / self->block_size;
+
+	uint32_t block_to_copy = ext2_get_inode_block_entry(self, inode, blocks_offset);
+	uint8_t *data_to_copy = ext2_get_block(self, block_to_copy);
+
+	long block_size_to_copy = self->block_size - (offset - blocks_offset * self->block_size);
+	long size_copied = 0;
+
+	if( block_size_to_copy > size ){
+		block_size_to_copy = size;
+	}
+
+	do {
+
+		memcpy(buff + size_copied, data_to_copy, block_size_to_copy);
+
+		size_copied += block_size_to_copy;
+
+		if (size_copied < size){
+			blocks_offset++;
+			block_to_copy = ext2_get_inode_block_entry(self, inode, blocks_offset);
+			data_to_copy = ext2_get_block(self, block_to_copy);
+
+			if (size_copied + self->block_size <= size) {
+				block_size_to_copy = self->block_size;
+			} else {
+				block_size_to_copy = size - size_copied;
+			}
+		}
+
+	} while (size_copied < size);
 }
 
 inline uint32_t ext2_get_number_of_block_group(t_ext2 *self){

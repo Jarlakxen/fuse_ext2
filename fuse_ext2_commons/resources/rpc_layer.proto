@@ -36,9 +36,8 @@ message ReadRequest {
 
 message ReadResponse {
 	required bytes data = 1;
-	required uint64 size = 2;
-	required bool error = 3;
-	required uint32 error_code = 4;
+	required bool error = 2;
+	required uint32 error_code = 3;
 }
 
 
