@@ -9,6 +9,7 @@
 #define EXT2_SERVER_H_
 
 	#include <ext2.h>
+	#include <log.h>
 
 	typedef struct{
 		char* device_path;
@@ -16,6 +17,8 @@
 		char* device;
 
 		t_ext2 *fs;
+
+		t_log *log;
 
 	}t_ext2_server;
 

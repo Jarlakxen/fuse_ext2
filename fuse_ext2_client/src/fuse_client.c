@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -7,8 +8,10 @@
 #include <google/protobuf-c/protobuf-c-rpc.h>
 
 #include <rpc_layer.pb-c.h>
+#include <log.h>
 
-ProtobufCService *service;
+ProtobufCService *service = NULL;
+t_log *log = NULL;
 
 static int fuse_ext2_getattr(const char *path, struct stat *stbuf) {
 	int res = 0;
@@ -114,16 +117,20 @@ int main(int argc, char **argv) {
 	ProtobufC_RPC_Client *client;
 	const char *name = "socket";
 
+	log = log_create(NULL, "Ext2 Client", true, LOG_LEVEL_DEBUG | LOG_LEVEL_INFO | LOG_LEVEL_WARNING |	LOG_LEVEL_ERROR);
+
+	log_info(log, "[+] Initialize RPC Client ... ");
+
 	service = protobuf_c_rpc_client_new(PROTOBUF_C_RPC_ADDRESS_LOCAL, name, &rpc_layer__remote_ext2__descriptor, NULL);
 
 	client = (ProtobufC_RPC_Client *) service;
 
-	printf("Connecting... ");
+	log_info(log, "[+] Connecting to Server ... ");
 	while (!protobuf_c_rpc_client_is_connected(client)){
 		protobuf_c_dispatch_run(protobuf_c_dispatch_default());
 	}
-	printf("done.\n");
 
+	log_info(log, "[+] Running FUSE ... ");
 
 	int ret;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);

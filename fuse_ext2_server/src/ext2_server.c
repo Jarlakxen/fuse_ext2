@@ -28,6 +28,7 @@ t_ext2_server *ext2_server_create(char* device_path){
 	t_ext2_server *ext2_server = malloc(sizeof(t_ext2_server));
 	struct stat sb;
 
+	ext2_server->log = log_create(NULL, "Ext2 Server", true, LOG_LEVEL_DEBUG | LOG_LEVEL_INFO | LOG_LEVEL_WARNING |	LOG_LEVEL_ERROR);
 	ext2_server->device_path = strdup(device_path);
 	ext2_server->device_desc = open(device_path, O_RDWR);
 
@@ -53,6 +54,7 @@ t_ext2_server *ext2_server_create(char* device_path){
 		exit(EXIT_SUCCESS);
 	}
 
+	log_info(ext2_server->log, "[+] Initialize Ext2 FS ... ");
 	ext2_server->fs = ext2_create(ext2_server->device);
 
 	return ext2_server;
@@ -62,7 +64,11 @@ void ext2_server_run(t_ext2_server *self){
 
 	const char name[] = "socket";
 
+	log_info(ext2_server->log, "[+] Initialize RPC Server ... ");
+
 	protobuf_c_rpc_server_new(PROTOBUF_C_RPC_ADDRESS_LOCAL, name, (ProtobufCService *) &ext2_service, NULL);
+
+	log_info(ext2_server->log, "[+] Listening ... ");
 
 	for (;;)
 		protobuf_c_dispatch_run(protobuf_c_dispatch_default());
