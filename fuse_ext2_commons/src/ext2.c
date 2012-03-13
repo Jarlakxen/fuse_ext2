@@ -213,7 +213,7 @@ static uint32_t ext2_get_inode_block_entry(t_ext2 *self, t_ext2_inode *node, uin
 }
 
 static uint32_t ext2_find_block_entry(t_ext2 *self, uint32_t base_block, uint8_t base_block_level, uint32_t entry_index) {
-	uint32_t *current_block = ext2_get_block(self, entry_index);
+	uint32_t *current_block = (uint32_t*)ext2_get_block(self, entry_index);
 
 	if (base_block_level == 0) {
 		return current_block[entry_index];
