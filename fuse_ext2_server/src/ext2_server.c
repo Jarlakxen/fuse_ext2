@@ -20,6 +20,7 @@ static t_ext2_server *ext2_server;
 // -----------  RPC Functions  -----------------
 static void ext2_service__read_dir(RpcLayer__RemoteExt2_Service *, const RpcLayer__ReadDirRequest *, RpcLayer__ReadDirResponse_Closure, void *);
 static void ext2_service__get_attr(RpcLayer__RemoteExt2_Service *, const RpcLayer__GetAttrRequest *, RpcLayer__GetAttrResponse_Closure, void *);
+static void ext2_service__read(RpcLayer__RemoteExt2_Service *, const RpcLayer__ReadRequest *, RpcLayer__ReadResponse_Closure, void *);
 static RpcLayer__RemoteExt2_Service ext2_service = RPC_LAYER__REMOTE_EXT2__INIT(ext2_service__);
 
 
@@ -121,6 +122,22 @@ static void ext2_service__get_attr(RpcLayer__RemoteExt2_Service *service,
 		response.size = element->size;
 	} else {
 		response.fileexist = false;
+	}
+
+	closure(&response, closure_data);
+}
+
+static void ext2_service__read(RpcLayer__RemoteExt2_Service *service,
+									const RpcLayer__ReadRequest *request,
+									RpcLayer__ReadResponse_Closure closure,
+									void *closure_data){
+
+	RpcLayer__ReadResponse response = RPC_LAYER__READ_RESPONSE__INIT;
+
+	t_ext2_inode *element = ext2_get_element_inode(ext2_server->fs, request->path);
+
+	if( element != NULL ){
+
 	}
 
 	closure(&response, closure_data);

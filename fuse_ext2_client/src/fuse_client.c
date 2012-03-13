@@ -66,9 +66,20 @@ static int fuse_ext2_readdir(const char *path, void *buf, fuse_fill_dir_t filler
 	return 0;
 }
 
+static int fuse_ext2_open(const char *path, struct fuse_file_info *fi) {
+	return 0;
+}
+
+static int fuse_ext2_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+
+	return 0;
+}
+
 static struct fuse_operations ext2_operations = {
         .getattr = fuse_ext2_getattr,
-        .readdir = fuse_ext2_readdir
+        .readdir = fuse_ext2_readdir,
+        .open = fuse_ext2_open,
+        .read = fuse_ext2_read
 };
 
 int main(int argc, char **argv) {
