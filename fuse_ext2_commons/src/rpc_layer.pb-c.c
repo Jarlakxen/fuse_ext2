@@ -178,6 +178,92 @@ void   rpc_layer__get_attr_response__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__get_attr_response__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   rpc_layer__read_request__init
+                     (RpcLayer__ReadRequest         *message)
+{
+  static RpcLayer__ReadRequest init_value = RPC_LAYER__READ_REQUEST__INIT;
+  *message = init_value;
+}
+size_t rpc_layer__read_request__get_packed_size
+                     (const RpcLayer__ReadRequest *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t rpc_layer__read_request__pack
+                     (const RpcLayer__ReadRequest *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t rpc_layer__read_request__pack_to_buffer
+                     (const RpcLayer__ReadRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+RpcLayer__ReadRequest *
+       rpc_layer__read_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (RpcLayer__ReadRequest *)
+     protobuf_c_message_unpack (&rpc_layer__read_request__descriptor,
+                                allocator, len, data);
+}
+void   rpc_layer__read_request__free_unpacked
+                     (RpcLayer__ReadRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   rpc_layer__read_response__init
+                     (RpcLayer__ReadResponse         *message)
+{
+  static RpcLayer__ReadResponse init_value = RPC_LAYER__READ_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t rpc_layer__read_response__get_packed_size
+                     (const RpcLayer__ReadResponse *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t rpc_layer__read_response__pack
+                     (const RpcLayer__ReadResponse *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t rpc_layer__read_response__pack_to_buffer
+                     (const RpcLayer__ReadResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+RpcLayer__ReadResponse *
+       rpc_layer__read_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (RpcLayer__ReadResponse *)
+     protobuf_c_message_unpack (&rpc_layer__read_response__descriptor,
+                                allocator, len, data);
+}
+void   rpc_layer__read_response__free_unpacked
+                     (RpcLayer__ReadResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 static const ProtobufCFieldDescriptor rpc_layer__read_dir_request__field_descriptors[1] =
 {
   {
@@ -369,13 +455,143 @@ const ProtobufCMessageDescriptor rpc_layer__get_attr_response__descriptor =
   (ProtobufCMessageInit) rpc_layer__get_attr_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCMethodDescriptor rpc_layer__remote_ext2__method_descriptors[2] =
+static const ProtobufCFieldDescriptor rpc_layer__read_request__field_descriptors[3] =
+{
+  {
+    "path",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadRequest, path),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "offset",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadRequest, offset),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "length",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadRequest, length),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned rpc_layer__read_request__field_indices_by_name[] = {
+  2,   /* field[2] = length */
+  1,   /* field[1] = offset */
+  0,   /* field[0] = path */
+};
+static const ProtobufCIntRange rpc_layer__read_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor rpc_layer__read_request__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "RpcLayer.ReadRequest",
+  "ReadRequest",
+  "RpcLayer__ReadRequest",
+  "RpcLayer",
+  sizeof(RpcLayer__ReadRequest),
+  3,
+  rpc_layer__read_request__field_descriptors,
+  rpc_layer__read_request__field_indices_by_name,
+  1,  rpc_layer__read_request__number_ranges,
+  (ProtobufCMessageInit) rpc_layer__read_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor rpc_layer__read_response__field_descriptors[3] =
+{
+  {
+    "data",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadResponse, data),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "error",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadResponse, error),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "error_code",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadResponse, error_code),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned rpc_layer__read_response__field_indices_by_name[] = {
+  0,   /* field[0] = data */
+  1,   /* field[1] = error */
+  2,   /* field[2] = error_code */
+};
+static const ProtobufCIntRange rpc_layer__read_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor rpc_layer__read_response__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "RpcLayer.ReadResponse",
+  "ReadResponse",
+  "RpcLayer__ReadResponse",
+  "RpcLayer",
+  sizeof(RpcLayer__ReadResponse),
+  3,
+  rpc_layer__read_response__field_descriptors,
+  rpc_layer__read_response__field_indices_by_name,
+  1,  rpc_layer__read_response__number_ranges,
+  (ProtobufCMessageInit) rpc_layer__read_response__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCMethodDescriptor rpc_layer__remote_ext2__method_descriptors[3] =
 {
   { "ReadDir", &rpc_layer__read_dir_request__descriptor, &rpc_layer__read_dir_response__descriptor },
   { "GetAttr", &rpc_layer__get_attr_request__descriptor, &rpc_layer__get_attr_response__descriptor },
+  { "Read", &rpc_layer__read_request__descriptor, &rpc_layer__read_response__descriptor },
 };
 const unsigned rpc_layer__remote_ext2__method_indices_by_name[] = {
   1,        /* GetAttr */
+  2,        /* Read */
   0         /* ReadDir */
 };
 const ProtobufCServiceDescriptor rpc_layer__remote_ext2__descriptor =
@@ -385,7 +601,7 @@ const ProtobufCServiceDescriptor rpc_layer__remote_ext2__descriptor =
   "ReadDir",
   "RpcLayer__RemoteExt2",
   "RpcLayer",
-  2,
+  3,
   rpc_layer__remote_ext2__method_descriptors,
   rpc_layer__remote_ext2__method_indices_by_name
 };
@@ -404,6 +620,14 @@ void rpc_layer__remote_ext2__get_attr(ProtobufCService *service,
 {
   PROTOBUF_C_ASSERT (service->descriptor == &rpc_layer__remote_ext2__descriptor);
   service->invoke(service, 1, (const ProtobufCMessage *) input, (ProtobufCClosure) closure, closure_data);
+}
+void rpc_layer__remote_ext2__read(ProtobufCService *service,
+                                  const RpcLayer__ReadRequest *input,
+                                  RpcLayer__ReadResponse_Closure closure,
+                                  void *closure_data)
+{
+  PROTOBUF_C_ASSERT (service->descriptor == &rpc_layer__remote_ext2__descriptor);
+  service->invoke(service, 2, (const ProtobufCMessage *) input, (ProtobufCClosure) closure, closure_data);
 }
 void rpc_layer__remote_ext2__init (RpcLayer__RemoteExt2_Service *service,
                                    RpcLayer__RemoteExt2_ServiceDestroy destroy)

@@ -12,6 +12,8 @@ typedef struct _RpcLayer__ReadDirRequest RpcLayer__ReadDirRequest;
 typedef struct _RpcLayer__ReadDirResponse RpcLayer__ReadDirResponse;
 typedef struct _RpcLayer__GetAttrRequest RpcLayer__GetAttrRequest;
 typedef struct _RpcLayer__GetAttrResponse RpcLayer__GetAttrResponse;
+typedef struct _RpcLayer__ReadRequest RpcLayer__ReadRequest;
+typedef struct _RpcLayer__ReadResponse RpcLayer__ReadResponse;
 
 
 /* --- enums --- */
@@ -61,6 +63,30 @@ struct  _RpcLayer__GetAttrResponse
 #define RPC_LAYER__GET_ATTR_RESPONSE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&rpc_layer__get_attr_response__descriptor) \
     , 0, 0, 0, 0 }
+
+
+struct  _RpcLayer__ReadRequest
+{
+  ProtobufCMessage base;
+  char *path;
+  uint32_t offset;
+  uint32_t length;
+};
+#define RPC_LAYER__READ_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&rpc_layer__read_request__descriptor) \
+    , NULL, 0, 0 }
+
+
+struct  _RpcLayer__ReadResponse
+{
+  ProtobufCMessage base;
+  ProtobufCBinaryData data;
+  protobuf_c_boolean error;
+  uint32_t error_code;
+};
+#define RPC_LAYER__READ_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&rpc_layer__read_response__descriptor) \
+    , {0,NULL}, 0, 0 }
 
 
 /* RpcLayer__ReadDirRequest methods */
@@ -139,6 +165,44 @@ RpcLayer__GetAttrResponse *
 void   rpc_layer__get_attr_response__free_unpacked
                      (RpcLayer__GetAttrResponse *message,
                       ProtobufCAllocator *allocator);
+/* RpcLayer__ReadRequest methods */
+void   rpc_layer__read_request__init
+                     (RpcLayer__ReadRequest         *message);
+size_t rpc_layer__read_request__get_packed_size
+                     (const RpcLayer__ReadRequest   *message);
+size_t rpc_layer__read_request__pack
+                     (const RpcLayer__ReadRequest   *message,
+                      uint8_t             *out);
+size_t rpc_layer__read_request__pack_to_buffer
+                     (const RpcLayer__ReadRequest   *message,
+                      ProtobufCBuffer     *buffer);
+RpcLayer__ReadRequest *
+       rpc_layer__read_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   rpc_layer__read_request__free_unpacked
+                     (RpcLayer__ReadRequest *message,
+                      ProtobufCAllocator *allocator);
+/* RpcLayer__ReadResponse methods */
+void   rpc_layer__read_response__init
+                     (RpcLayer__ReadResponse         *message);
+size_t rpc_layer__read_response__get_packed_size
+                     (const RpcLayer__ReadResponse   *message);
+size_t rpc_layer__read_response__pack
+                     (const RpcLayer__ReadResponse   *message,
+                      uint8_t             *out);
+size_t rpc_layer__read_response__pack_to_buffer
+                     (const RpcLayer__ReadResponse   *message,
+                      ProtobufCBuffer     *buffer);
+RpcLayer__ReadResponse *
+       rpc_layer__read_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   rpc_layer__read_response__free_unpacked
+                     (RpcLayer__ReadResponse *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*RpcLayer__ReadDirRequest_Closure)
@@ -152,6 +216,12 @@ typedef void (*RpcLayer__GetAttrRequest_Closure)
                   void *closure_data);
 typedef void (*RpcLayer__GetAttrResponse_Closure)
                  (const RpcLayer__GetAttrResponse *message,
+                  void *closure_data);
+typedef void (*RpcLayer__ReadRequest_Closure)
+                 (const RpcLayer__ReadRequest *message,
+                  void *closure_data);
+typedef void (*RpcLayer__ReadResponse_Closure)
+                 (const RpcLayer__ReadResponse *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -168,6 +238,10 @@ struct _RpcLayer__RemoteExt2_Service
                    const RpcLayer__GetAttrRequest *input,
                    RpcLayer__GetAttrResponse_Closure closure,
                    void *closure_data);
+  void (*read)(RpcLayer__RemoteExt2_Service *service,
+               const RpcLayer__ReadRequest *input,
+               RpcLayer__ReadResponse_Closure closure,
+               void *closure_data);
 };
 typedef void (*RpcLayer__RemoteExt2_ServiceDestroy)(RpcLayer__RemoteExt2_Service *);
 void rpc_layer__remote_ext2__init (RpcLayer__RemoteExt2_Service *service,
@@ -177,7 +251,8 @@ void rpc_layer__remote_ext2__init (RpcLayer__RemoteExt2_Service *service,
 #define RPC_LAYER__REMOTE_EXT2__INIT(function_prefix__) \
     { RPC_LAYER__REMOTE_EXT2__BASE_INIT,\
       function_prefix__ ## read_dir,\
-      function_prefix__ ## get_attr  }
+      function_prefix__ ## get_attr,\
+      function_prefix__ ## read  }
 void rpc_layer__remote_ext2__read_dir(ProtobufCService *service,
                                       const RpcLayer__ReadDirRequest *input,
                                       RpcLayer__ReadDirResponse_Closure closure,
@@ -186,6 +261,10 @@ void rpc_layer__remote_ext2__get_attr(ProtobufCService *service,
                                       const RpcLayer__GetAttrRequest *input,
                                       RpcLayer__GetAttrResponse_Closure closure,
                                       void *closure_data);
+void rpc_layer__remote_ext2__read(ProtobufCService *service,
+                                  const RpcLayer__ReadRequest *input,
+                                  RpcLayer__ReadResponse_Closure closure,
+                                  void *closure_data);
 
 /* --- descriptors --- */
 
@@ -193,6 +272,8 @@ extern const ProtobufCMessageDescriptor rpc_layer__read_dir_request__descriptor;
 extern const ProtobufCMessageDescriptor rpc_layer__read_dir_response__descriptor;
 extern const ProtobufCMessageDescriptor rpc_layer__get_attr_request__descriptor;
 extern const ProtobufCMessageDescriptor rpc_layer__get_attr_response__descriptor;
+extern const ProtobufCMessageDescriptor rpc_layer__read_request__descriptor;
+extern const ProtobufCMessageDescriptor rpc_layer__read_response__descriptor;
 extern const ProtobufCServiceDescriptor rpc_layer__remote_ext2__descriptor;
 
 PROTOBUF_C_END_DECLS
