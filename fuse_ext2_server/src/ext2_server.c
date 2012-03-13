@@ -8,7 +8,7 @@
 
 #include <google/protobuf-c/protobuf-c-rpc.h>
 
-#include "../commons/rpc_layer.pb-c.h"
+#include <rpc_layer.pb-c.h>
 
 #include "ext2_server.h"
 
