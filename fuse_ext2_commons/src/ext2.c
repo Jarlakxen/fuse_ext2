@@ -221,6 +221,21 @@ inline uint32_t ext2_get_block_size(t_ext2 *self){
 	return 1024 << self->superblock->log_block_size;
 }
 
+inline uint32_t ext2_get_inode_blocks_amount(t_ext2 *self){
+	uint32_t blocks = 0;
+	uint32_t entries_per_block = self->block_size / sizeof(uint32_t);
+
+	int index;
+	for (index = 0; index < (sizeof(EXT2_INODES_INDIRECTION_LEVEL) / sizeof(uint8_t)); index++) {
+
+		long blocks_in_level = powl(entries_per_block, EXT2_INODES_INDIRECTION_LEVEL[index]);
+
+		blocks = blocks + blocks_in_level;
+	}
+
+	return blocks;
+}
+
 // ---------------------------------------------------------------------------------
 // ------------------------------ INTERNAL FUNCTIONS -------------------------------
 // ---------------------------------------------------------------------------------

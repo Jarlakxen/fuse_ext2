@@ -45,6 +45,8 @@
 	// t_ext2_inode -> rev_level
 	#define EXT2_INODE_HAS_MODE_FLAG(inode, flag)	((inode->mode & flag) == flag)
 
+	const uint8_t EXT2_INODES_INDIRECTION_LEVEL[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 };
+
 	// -- file format --
 	#define EXT2_IFSOCK	0xC000	//socket
 	#define EXT2_IFLNK	0xA000	//symbolic link
@@ -67,6 +69,7 @@
 	#define EXT2_IROTH	0x0004	//others read
 	#define EXT2_IWOTH	0x0002	//others write
 	#define EXT2_IXOTH	0x0001	//others execute
+
 
 	typedef struct {
 		uint32_t inodecount;
@@ -175,6 +178,7 @@
 		uint8_t *device;
 		t_ext2_superblock *superblock;
 		uint32_t block_size;
+		uint64_t inode_data_size;
 		uint32_t number_of_block_groups;
 	} t_ext2;
 
@@ -192,6 +196,7 @@
 
 	bool 	 			 ext2_has_superblock(uint16_t group_number);
 	uint32_t 	 		 ext2_get_block_size(t_ext2 *);
+	uint32_t 	 		 ext2_get_inode_blocks_amount(t_ext2 *);
 
 	void				 ext2_inode_entry_free(t_ext2_inode_entry*);
 
