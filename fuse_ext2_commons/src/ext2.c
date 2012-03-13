@@ -10,18 +10,25 @@
 
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
 
-static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
-static t_ext2_inode *ext2_find_inode(t_ext2 *self, t_ext2_inode *root,  char **path);
 
-static t_ext2_block_group *ext2_get_block_group(t_ext2*, uint16_t group_number);
-static uint32_t ext2_get_number_of_block_group(t_ext2 *);
+//  ---  iNodes Functions  ---
+static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
+static t_ext2_inode *ext2_find_inode(t_ext2 *, t_ext2_inode *root,  char **path);
+static uint32_t ext2_get_inode_block_entry(t_ext2 *, t_ext2_inode *node, uint32_t entry_index);
+static uint32_t ext2_find_block_entry(t_ext2 *, uint32_t base_block, uint8_t base_block_level, uint32_t entry_index);
+
 
 //  ---  Block Group Functions  ---
 static t_ext2_block_group *ext2_block_group_create(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size);
 static void ext2_block_group_free(t_ext2_block_group *block_group);
+static t_ext2_block_group *ext2_get_block_group(t_ext2*, uint16_t group_number);
+static uint32_t ext2_get_number_of_block_group(t_ext2 *);
+
 
 //  ---  iNodes Entries Functions  ---
 t_ext2_inode_entry *ext2_inode_entry_create(t_ext2 *fs, t_ext2_directory_entry *dir_entry);
+
+
 
 t_ext2 *ext2_create(char *device) {
 	t_ext2 *fs = malloc(sizeof(t_ext2));
@@ -37,6 +44,8 @@ t_ext2 *ext2_create(char *device) {
 	}
 
 	fs->block_size = ext2_get_block_size(fs);
+	fs->entries_per_block = fs->block_size / sizeof(uint32_t);
+	fs->inode_blocks_amount = ext2_get_inode_blocks_amount(fs);
 	fs->number_of_block_groups = ext2_get_number_of_block_group(fs);
 
 	return fs;
@@ -172,16 +181,51 @@ inline static t_list *ext2_list_inode(t_ext2 *self, t_ext2_inode *root) {
 
 	int block_amount = root->blocks / (2 << self->superblock->log_block_size);
 
-	int cont;
+	int index;
+	for (index = 0; index < block_amount; index++) {
 
-	for (cont = 0; cont < block_amount; cont++) {
-		if (root->block[cont] != 0) {
-			ext2_get_block_directory_entrys(self, ext2_get_block(self, root->block[cont]), list);
+		uint32_t block_entry = ext2_get_inode_block_entry(self, root, index);
+
+		if (block_entry != 0) {
+			ext2_get_block_directory_entrys(self, ext2_get_block(self, block_entry), list);
 		}
 	}
 
 	return list;
 }
+
+static uint32_t ext2_get_inode_block_entry(t_ext2 *self, t_ext2_inode *node, uint32_t entry_index) {
+
+	int base_block_index = 0, blocks_offset = 0;
+	for (; blocks_offset < entry_index && base_block_index < (sizeof(EXT2_INODES_INDIRECTION_LEVEL) / sizeof(uint8_t)); base_block_index++) {
+
+		blocks_offset += powl(self->entries_per_block, EXT2_INODES_INDIRECTION_LEVEL[base_block_index]);
+
+	}
+
+	uint8_t level = EXT2_INODES_INDIRECTION_LEVEL[base_block_index];
+
+	if (level == 0) {
+		return node->block[base_block_index];
+	}
+
+	return ext2_find_block_entry(self, node->block[base_block_index], level, entry_index);
+}
+
+static uint32_t ext2_find_block_entry(t_ext2 *self, uint32_t base_block, uint8_t base_block_level, uint32_t entry_index) {
+	uint32_t *current_block = ext2_get_block(self, entry_index);
+
+	if (base_block_level == 0) {
+		return current_block[entry_index];
+	}
+
+	long elements_in_sublevels = powl(self->entries_per_block, base_block_level - 1);
+
+	int index = entry_index / elements_in_sublevels;
+
+	return ext2_find_block_entry(self, current_block[index], base_block_level - 1, entry_index - index * elements_in_sublevels);
+}
+
 
 static t_list *ext2_get_block_directory_entrys(t_ext2 *self, uint8_t *block, t_list *list_to_fill){
 
@@ -223,12 +267,11 @@ inline uint32_t ext2_get_block_size(t_ext2 *self){
 
 inline uint32_t ext2_get_inode_blocks_amount(t_ext2 *self){
 	uint32_t blocks = 0;
-	uint32_t entries_per_block = self->block_size / sizeof(uint32_t);
 
 	int index;
 	for (index = 0; index < (sizeof(EXT2_INODES_INDIRECTION_LEVEL) / sizeof(uint8_t)); index++) {
 
-		long blocks_in_level = powl(entries_per_block, EXT2_INODES_INDIRECTION_LEVEL[index]);
+		long blocks_in_level = powl(self->entries_per_block, EXT2_INODES_INDIRECTION_LEVEL[index]);
 
 		blocks = blocks + blocks_in_level;
 	}

@@ -178,7 +178,8 @@
 		uint8_t *device;
 		t_ext2_superblock *superblock;
 		uint32_t block_size;
-		uint64_t inode_data_size;
+		uint32_t inode_blocks_amount;
+		uint32_t entries_per_block;
 		uint32_t number_of_block_groups;
 	} t_ext2;
 
