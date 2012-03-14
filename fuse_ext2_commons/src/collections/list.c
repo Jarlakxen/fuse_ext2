@@ -103,7 +103,7 @@ void *list_replace(t_list *self, int index, void *data) {
 }
 
 /*
- * @NAME: list_replace_and_destroy
+ * @NAME: list_replace_and_destroy_element
  * @DESC: Coloca un valor en una de la posiciones de la lista liberando el valor anterior
  */
 void list_replace_and_destroy_element(t_list *self, int num, void *data, void(*element_destroyer)(void*)) {
@@ -113,7 +113,7 @@ void list_replace_and_destroy_element(t_list *self, int num, void *data, void(*e
 
 /*
  * @NAME: list_find
- * @DESC: Retorna el primer valor encontrado, el cual haga que el closure devuelva != 0
+ * @DESC: Retorna el primer valor encontrado, el cual haga que condition devuelva != 0
  */
 void* list_find(t_list *self, bool(*condition)(void*)) {
 	t_link_element *element = list_find_element(self, condition, NULL);
@@ -121,7 +121,7 @@ void* list_find(t_list *self, bool(*condition)(void*)) {
 }
 
 /*
- * @NAME: list_iterator
+ * @NAME: list_iterate
  * @DESC: Itera la lista llamando al closure por cada elemento
  */
 void list_iterate(t_list* self, void(*closure)(void*)) {
@@ -158,8 +158,8 @@ void *list_remove(t_list *self, int index) {
 }
 
 /*
- * @NAME: list_remove_by_closure
- * @DESC: Remueve el primer elemento de la lista que haga que el closure devuelva != 0.
+ * @NAME: list_remove_by_condition
+ * @DESC: Remueve el primer elemento de la lista que haga que condition devuelva != 0.
  */
 void* list_remove_by_condition(t_list *self, bool(*condition)(void*)) {
 	int index = 0;
@@ -173,7 +173,7 @@ void* list_remove_by_condition(t_list *self, bool(*condition)(void*)) {
 }
 
 /*
- * @NAME: list_remove_and_destroy
+ * @NAME: list_remove_and_destroy_element
  * @DESC: Remueve un elemento de la lista de una determinada posicion y libera la memoria.
  */
 void list_remove_and_destroy_element(t_list *self, int index, void(*element_destroyer)(void*)) {
@@ -182,8 +182,8 @@ void list_remove_and_destroy_element(t_list *self, int index, void(*element_dest
 }
 
 /*
- * @NAME: list_remove_and_destroy_by_closure
- * @DESC: Remueve y destruye los elementos de la lista que hagan que el closure devuelva != 0.
+ * @NAME: list_remove_and_destroy_by_condition
+ * @DESC: Remueve y destruye los elementos de la lista que hagan que condition devuelva != 0.
  */
 void list_remove_and_destroy_by_condition(t_list *self, bool(*condition)(void*), void(*element_destroyer)(void*)) {
 	void* data = list_remove_by_condition(self, condition);
@@ -242,6 +242,74 @@ void list_destroy_and_destroy_elements(t_list *self, void(*element_destroyer)(vo
 	list_clean_and_destroy_elements(self, element_destroyer);
 	free(self);
 }
+
+/*
+ * @NAME: list_take
+ * @DESC: Retorna una nueva lista con
+ * los primeros n elementos
+ */
+t_list* list_take(t_list* self, int count) {
+	t_list* sublist = list_create();
+	int i = 0;
+	for (i = 0; i < count; ++i) {
+		void* element = list_get(self, i);
+		list_add(sublist, element);
+	}
+	return sublist;
+}
+
+/*
+ * @NAME: list_take_and_remove
+ * @DESC: Retorna una nueva lista con
+ * los primeros n elementos, eliminando
+ * del origen estos elementos
+ */
+t_list* list_take_and_remove(t_list* self, int count) {
+	t_list* sublist = list_create();
+	int i = 0;
+	for (i = 0; i < count; ++i) {
+		void* element = list_remove(self, 0);
+		list_add(sublist, element);
+	}
+	return sublist;
+}
+
+/*
+ * @NAME: list_filter
+ * @DESC: Retorna una nueva lista con los
+ * elementos que cumplen la condicion
+ */
+t_list* list_filter(t_list* self, bool(*condition)(void*)){
+	t_list* filtered = list_create();
+
+	void _add_if_apply(void* element) {
+		if (condition(element)) {
+			list_add(filtered, element);
+		}
+	}
+
+	list_iterate(self, _add_if_apply);
+	return filtered;
+}
+
+/*
+ * @NAME: list_map
+ * @DESC: Retorna una nueva lista con los
+ * con los elementos transformados
+ */
+t_list* list_map(t_list* self, void*(*transformer)(void*)){
+	t_list* mapped = list_create();
+
+	void _add_after_transform(void* element) {
+		void* new_element = transformer(element);
+		list_add(mapped, new_element);
+	}
+
+	list_iterate(self, _add_after_transform);
+	return mapped;
+}
+
+/********* PRIVATE FUNCTIONS **************/
 
 static void list_link_element(t_link_element* previous, t_link_element* next) {
 	if (previous != NULL) {

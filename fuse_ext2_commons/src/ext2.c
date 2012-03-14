@@ -130,13 +130,15 @@ t_list *ext2_list_dir(t_ext2 *self, char *dir_path){
 }
 
 t_ext2_inode *ext2_get_element_inode(t_ext2 *self, char *path){
+	t_ext2_inode *root_inode = ext2_get_root_inode(self);
+
 	if( strcmp("/", path) == 0 ){
-		return ext2_get_root_inode(self);
+		return root_inode;
 	}
 
 	char **path_stack = string_split(path+1,"/");
 
-	t_ext2_inode *inode = ext2_find_inode(self, ext2_get_root_inode(self), path_stack);
+	t_ext2_inode *inode = ext2_find_inode(self, root_inode, path_stack);
 
 	int index = 0;
 	for(; path_stack[index] != NULL ;index++){
@@ -153,21 +155,25 @@ inline static t_ext2_inode *ext2_find_inode(t_ext2 *self, t_ext2_inode *root,  c
 		return root;
 	}
 
+	t_ext2_inode *finded_inode = NULL;
+
 	t_list *subelements = ext2_list_inode(self, root);
 
 	bool _find_inode(t_ext2_inode_entry *entry){
 		return strcmp(path[0], entry->name) == 0;
 	}
 
-	t_ext2_inode *inode = list_find(subelements, (void*)_find_inode);
+	t_ext2_inode_entry *inode_entry = list_find(subelements, (void*)_find_inode);
+
+	if( inode_entry != NULL ){
+		t_ext2_inode *inode = ext2_get_inode(self, inode_entry->inode_index);
+
+		finded_inode = ext2_find_inode(self, inode, &path[1]);
+	}
 
 	list_destroy_and_destroy_elements(subelements, (void*)ext2_inode_entry_free);
 
-	if( inode == NULL ){
-		return NULL;
-	}
-
-	return ext2_find_inode(self, inode, &path[1]);
+	return finded_inode;
 
 }
 
