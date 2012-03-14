@@ -101,6 +101,8 @@ static void ext2_service__read_dir(RpcLayer__RemoteExt2_Service *service,
 
 	closure(&response, closure_data);
 
+	free(response.elements);
+
 	if (elements != NULL){
 		list_destroy_and_destroy_elements(elements, (void*)ext2_inode_entry_free);
 	}
