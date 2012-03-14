@@ -33,6 +33,7 @@ static int fuse_ext2_getattr(const char *path, struct stat *stbuf) {
 		stbuf->st_mode = result->mode;
 		stbuf->st_size = result->size;
 		stbuf->st_nlink = result->nlinks;
+		stbuf->st_blocks = result->blocks;
 	}
 
 	rpc_layer__remote_ext2__get_attr(service, &query, _handle_response, &is_done);

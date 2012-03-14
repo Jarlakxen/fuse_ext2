@@ -378,7 +378,7 @@ const ProtobufCMessageDescriptor rpc_layer__get_attr_request__descriptor =
   (ProtobufCMessageInit) rpc_layer__get_attr_request__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descriptors[4] =
+static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descriptors[5] =
 {
   {
     "fileExist",
@@ -417,8 +417,20 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "size",
+    "blocks",
     4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__GetAttrResponse, blocks),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    5,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
@@ -430,15 +442,16 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
   },
 };
 static const unsigned rpc_layer__get_attr_response__field_indices_by_name[] = {
+  3,   /* field[3] = blocks */
   0,   /* field[0] = fileExist */
   1,   /* field[1] = mode */
   2,   /* field[2] = nlinks */
-  3,   /* field[3] = size */
+  4,   /* field[4] = size */
 };
 static const ProtobufCIntRange rpc_layer__get_attr_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor rpc_layer__get_attr_response__descriptor =
 {
@@ -448,7 +461,7 @@ const ProtobufCMessageDescriptor rpc_layer__get_attr_response__descriptor =
   "RpcLayer__GetAttrResponse",
   "RpcLayer",
   sizeof(RpcLayer__GetAttrResponse),
-  4,
+  5,
   rpc_layer__get_attr_response__field_descriptors,
   rpc_layer__get_attr_response__field_indices_by_name,
   1,  rpc_layer__get_attr_response__number_ranges,

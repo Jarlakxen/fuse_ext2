@@ -124,6 +124,7 @@ static void ext2_service__get_attr(RpcLayer__RemoteExt2_Service *service,
 			response.mode = S_IFREG | FS_FULL_READ_PRIV | FS_FULL_WRITE_PRIV;
 		}
 
+		response.blocks = element->blocks;
 		response.nlinks = element->links_count;
 		response.size = element->size;
 	} else {
