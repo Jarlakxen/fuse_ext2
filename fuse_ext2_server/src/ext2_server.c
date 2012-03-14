@@ -24,11 +24,13 @@ static void ext2_service__read(RpcLayer__RemoteExt2_Service *, const RpcLayer__R
 static RpcLayer__RemoteExt2_Service ext2_service = RPC_LAYER__REMOTE_EXT2__INIT(ext2_service__);
 
 
-t_ext2_server *ext2_server_create(char* device_path){
+t_ext2_server *ext2_server_create(char* socket_path, char* device_path){
 	t_ext2_server *ext2_server = malloc(sizeof(t_ext2_server));
 	struct stat sb;
 
-	ext2_server->log = log_create(NULL, "Ext2 Server", true, LOG_LEVEL_DEBUG | LOG_LEVEL_INFO | LOG_LEVEL_WARNING |	LOG_LEVEL_ERROR);
+	ext2_server->socket_file = socket_path;
+
+	ext2_server->log = log_create(NULL, "Ext2 Server", true, LOG_LEVEL_DEBUG);
 	ext2_server->device_path = strdup(device_path);
 	ext2_server->device_desc = open(device_path, O_RDWR);
 
@@ -62,11 +64,9 @@ t_ext2_server *ext2_server_create(char* device_path){
 
 void ext2_server_run(t_ext2_server *self){
 
-	const char name[] = "socket";
-
 	log_info(ext2_server->log, "[+] Initialize RPC Server ... ");
 
-	protobuf_c_rpc_server_new(PROTOBUF_C_RPC_ADDRESS_LOCAL, name, (ProtobufCService *) &ext2_service, NULL);
+	protobuf_c_rpc_server_new(PROTOBUF_C_RPC_ADDRESS_LOCAL, self->socket_file, (ProtobufCService *) &ext2_service, NULL);
 
 	log_info(ext2_server->log, "[+] Listening ... ");
 
@@ -171,7 +171,7 @@ static void ext2_service__read(RpcLayer__RemoteExt2_Service *service,
 
 int main(int argc, char **argv) {
 
-	ext2_server = ext2_server_create("dev/ext2.disk");
+	ext2_server = ext2_server_create("../socket", "dev/ext2.disk");
 	ext2_server_run(ext2_server);
 
 	return EXIT_FAILURE;

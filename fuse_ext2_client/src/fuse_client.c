@@ -115,9 +115,9 @@ static struct fuse_operations ext2_operations = {
 
 int main(int argc, char **argv) {
 	ProtobufC_RPC_Client *client;
-	const char *name = "socket";
+	const char *name = "../socket";
 
-	log = log_create(NULL, "Ext2 Client", true, LOG_LEVEL_DEBUG | LOG_LEVEL_INFO | LOG_LEVEL_WARNING |	LOG_LEVEL_ERROR);
+	log = log_create(NULL, "Ext2 Client", true, LOG_LEVEL_DEBUG);
 
 	log_info(log, "[+] Initialize RPC Client ... ");
 

@@ -12,6 +12,8 @@
 	#include <log.h>
 
 	typedef struct{
+		char* socket_file;
+
 		char* device_path;
 		int device_desc;
 		char* device;
@@ -22,7 +24,7 @@
 
 	}t_ext2_server;
 
-	t_ext2_server *ext2_server_create(char* device_path);
+	t_ext2_server *ext2_server_create(char* socket_file, char* device_path);
 	void 		   ext2_server_run(t_ext2_server *);
 
 #endif /* EXT2_SERVER_H_ */

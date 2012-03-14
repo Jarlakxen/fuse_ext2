@@ -43,7 +43,7 @@
 
 
 	// t_ext2_inode -> rev_level
-	#define EXT2_INODE_HAS_MODE_FLAG(inode, flag)	((inode->mode & flag) == flag)
+	#define EXT2_INODE_HAS_MODE_FLAG(inode, flag)	((inode->mode & 0xF000) == flag)
 
 	const uint8_t EXT2_INODES_INDIRECTION_LEVEL[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3 };
 
