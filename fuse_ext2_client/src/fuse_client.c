@@ -107,11 +107,42 @@ static int fuse_ext2_read(const char *path, char *buf, size_t size, off_t offset
 	return res;
 }
 
+static int fuse_ext2_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	RpcLayer__WriteRequest query = RPC_LAYER__WRITE_REQUEST__INIT;
+	protobuf_c_boolean is_done = 0;
+	int res = 0;
+
+	query.path = strdup(path);
+	query.offset = offset;
+	query.data.len = size;
+	query.data.data = buf;
+
+	void _handle_response(const RpcLayer__ReadResponse *result, void *closure_data) {
+
+		if( result->error ) {
+			res = -ENOENT;
+			return;
+		}
+
+		*(protobuf_c_boolean *) closure_data = 1;
+	}
+
+	rpc_layer__remote_ext2__write(service, &query, _handle_response, &is_done);
+
+	while (!is_done)
+		protobuf_c_dispatch_run(protobuf_c_dispatch_default());
+
+	free(query.path);
+
+	return res;
+}
+
 static struct fuse_operations ext2_operations = {
         .getattr = fuse_ext2_getattr,
         .readdir = fuse_ext2_readdir,
         .open = fuse_ext2_open,
-        .read = fuse_ext2_read
+        .read = fuse_ext2_read,
+        .write = fuse_ext2_write
 };
 
 int main(int argc, char **argv) {

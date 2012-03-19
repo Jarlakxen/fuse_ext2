@@ -21,6 +21,7 @@ static t_ext2_server *ext2_server;
 static void ext2_service__read_dir(RpcLayer__RemoteExt2_Service *, const RpcLayer__ReadDirRequest *, RpcLayer__ReadDirResponse_Closure, void *);
 static void ext2_service__get_attr(RpcLayer__RemoteExt2_Service *, const RpcLayer__GetAttrRequest *, RpcLayer__GetAttrResponse_Closure, void *);
 static void ext2_service__read(RpcLayer__RemoteExt2_Service *, const RpcLayer__ReadRequest *, RpcLayer__ReadResponse_Closure, void *);
+static void ext2_service__write(RpcLayer__RemoteExt2_Service *, const RpcLayer__WriteRequest *, RpcLayer__WriteResponse_Closure, void *);
 static RpcLayer__RemoteExt2_Service ext2_service = RPC_LAYER__REMOTE_EXT2__INIT(ext2_service__);
 
 
@@ -168,6 +169,25 @@ static void ext2_service__read(RpcLayer__RemoteExt2_Service *service,
 	response.data.len = size_to_read;
 
 	ext2_read_inode_data(ext2_server->fs, element, request->offset, size_to_read, buff);
+
+	closure(&response, closure_data);
+}
+
+static void ext2_service__write(RpcLayer__RemoteExt2_Service *service,
+									const RpcLayer__WriteRequest *request,
+									RpcLayer__WriteResponse_Closure closure,
+									void *closure_data){
+	RpcLayer__WriteResponse response = RPC_LAYER__WRITE_RESPONSE__INIT;
+
+	t_ext2_inode *element = ext2_get_element_inode(ext2_server->fs, request->path);
+
+	if( element == NULL ){
+		response.error = true;
+		closure(&response, closure_data);
+		return;
+	}
+
+
 
 	closure(&response, closure_data);
 }

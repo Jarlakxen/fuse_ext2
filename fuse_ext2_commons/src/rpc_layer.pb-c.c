@@ -264,6 +264,92 @@ void   rpc_layer__read_response__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__read_response__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   rpc_layer__write_request__init
+                     (RpcLayer__WriteRequest         *message)
+{
+  static RpcLayer__WriteRequest init_value = RPC_LAYER__WRITE_REQUEST__INIT;
+  *message = init_value;
+}
+size_t rpc_layer__write_request__get_packed_size
+                     (const RpcLayer__WriteRequest *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_request__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t rpc_layer__write_request__pack
+                     (const RpcLayer__WriteRequest *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_request__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t rpc_layer__write_request__pack_to_buffer
+                     (const RpcLayer__WriteRequest *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_request__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+RpcLayer__WriteRequest *
+       rpc_layer__write_request__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (RpcLayer__WriteRequest *)
+     protobuf_c_message_unpack (&rpc_layer__write_request__descriptor,
+                                allocator, len, data);
+}
+void   rpc_layer__write_request__free_unpacked
+                     (RpcLayer__WriteRequest *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_request__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   rpc_layer__write_response__init
+                     (RpcLayer__WriteResponse         *message)
+{
+  static RpcLayer__WriteResponse init_value = RPC_LAYER__WRITE_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t rpc_layer__write_response__get_packed_size
+                     (const RpcLayer__WriteResponse *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t rpc_layer__write_response__pack
+                     (const RpcLayer__WriteResponse *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t rpc_layer__write_response__pack_to_buffer
+                     (const RpcLayer__WriteResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+RpcLayer__WriteResponse *
+       rpc_layer__write_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (RpcLayer__WriteResponse *)
+     protobuf_c_message_unpack (&rpc_layer__write_response__descriptor,
+                                allocator, len, data);
+}
+void   rpc_layer__write_response__free_unpacked
+                     (RpcLayer__WriteResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &rpc_layer__write_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 static const ProtobufCFieldDescriptor rpc_layer__read_dir_request__field_descriptors[1] =
 {
   {
@@ -302,11 +388,35 @@ const ProtobufCMessageDescriptor rpc_layer__read_dir_request__descriptor =
   (ProtobufCMessageInit) rpc_layer__read_dir_request__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor rpc_layer__read_dir_response__field_descriptors[1] =
+static const ProtobufCFieldDescriptor rpc_layer__read_dir_response__field_descriptors[3] =
 {
   {
-    "elements",
+    "error",
     1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadDirResponse, error),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "error_code",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__ReadDirResponse, error_code),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "elements",
+    3,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
     PROTOBUF_C_OFFSETOF(RpcLayer__ReadDirResponse, n_elements),
@@ -318,12 +428,14 @@ static const ProtobufCFieldDescriptor rpc_layer__read_dir_response__field_descri
   },
 };
 static const unsigned rpc_layer__read_dir_response__field_indices_by_name[] = {
-  0,   /* field[0] = elements */
+  2,   /* field[2] = elements */
+  0,   /* field[0] = error */
+  1,   /* field[1] = error_code */
 };
 static const ProtobufCIntRange rpc_layer__read_dir_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 1 }
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor rpc_layer__read_dir_response__descriptor =
 {
@@ -333,7 +445,7 @@ const ProtobufCMessageDescriptor rpc_layer__read_dir_response__descriptor =
   "RpcLayer__ReadDirResponse",
   "RpcLayer",
   sizeof(RpcLayer__ReadDirResponse),
-  1,
+  3,
   rpc_layer__read_dir_response__field_descriptors,
   rpc_layer__read_dir_response__field_indices_by_name,
   1,  rpc_layer__read_dir_response__number_ranges,
@@ -378,11 +490,35 @@ const ProtobufCMessageDescriptor rpc_layer__get_attr_request__descriptor =
   (ProtobufCMessageInit) rpc_layer__get_attr_request__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descriptors[5] =
+static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descriptors[7] =
 {
   {
-    "fileExist",
+    "error",
     1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__GetAttrResponse, error),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "error_code",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__GetAttrResponse, error_code),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "fileExist",
+    3,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_BOOL,
     0,   /* quantifier_offset */
@@ -394,7 +530,7 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
   },
   {
     "mode",
-    2,
+    4,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
@@ -406,7 +542,7 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
   },
   {
     "nlinks",
-    3,
+    5,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
@@ -418,7 +554,7 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
   },
   {
     "blocks",
-    4,
+    6,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
@@ -430,7 +566,7 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
   },
   {
     "size",
-    5,
+    7,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
@@ -442,16 +578,18 @@ static const ProtobufCFieldDescriptor rpc_layer__get_attr_response__field_descri
   },
 };
 static const unsigned rpc_layer__get_attr_response__field_indices_by_name[] = {
-  3,   /* field[3] = blocks */
-  0,   /* field[0] = fileExist */
-  1,   /* field[1] = mode */
-  2,   /* field[2] = nlinks */
-  4,   /* field[4] = size */
+  5,   /* field[5] = blocks */
+  0,   /* field[0] = error */
+  1,   /* field[1] = error_code */
+  2,   /* field[2] = fileExist */
+  3,   /* field[3] = mode */
+  4,   /* field[4] = nlinks */
+  6,   /* field[6] = size */
 };
 static const ProtobufCIntRange rpc_layer__get_attr_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 7 }
 };
 const ProtobufCMessageDescriptor rpc_layer__get_attr_response__descriptor =
 {
@@ -461,7 +599,7 @@ const ProtobufCMessageDescriptor rpc_layer__get_attr_response__descriptor =
   "RpcLayer__GetAttrResponse",
   "RpcLayer",
   sizeof(RpcLayer__GetAttrResponse),
-  5,
+  7,
   rpc_layer__get_attr_response__field_descriptors,
   rpc_layer__get_attr_response__field_indices_by_name,
   1,  rpc_layer__get_attr_response__number_ranges,
@@ -596,25 +734,142 @@ const ProtobufCMessageDescriptor rpc_layer__read_response__descriptor =
   (ProtobufCMessageInit) rpc_layer__read_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCMethodDescriptor rpc_layer__remote_ext2__method_descriptors[3] =
+static const ProtobufCFieldDescriptor rpc_layer__write_request__field_descriptors[3] =
+{
+  {
+    "path",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__WriteRequest, path),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "offset",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__WriteRequest, offset),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "data",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__WriteRequest, data),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned rpc_layer__write_request__field_indices_by_name[] = {
+  2,   /* field[2] = data */
+  1,   /* field[1] = offset */
+  0,   /* field[0] = path */
+};
+static const ProtobufCIntRange rpc_layer__write_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor rpc_layer__write_request__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "RpcLayer.WriteRequest",
+  "WriteRequest",
+  "RpcLayer__WriteRequest",
+  "RpcLayer",
+  sizeof(RpcLayer__WriteRequest),
+  3,
+  rpc_layer__write_request__field_descriptors,
+  rpc_layer__write_request__field_indices_by_name,
+  1,  rpc_layer__write_request__number_ranges,
+  (ProtobufCMessageInit) rpc_layer__write_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor rpc_layer__write_response__field_descriptors[2] =
+{
+  {
+    "error",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__WriteResponse, error),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "error_code",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(RpcLayer__WriteResponse, error_code),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned rpc_layer__write_response__field_indices_by_name[] = {
+  0,   /* field[0] = error */
+  1,   /* field[1] = error_code */
+};
+static const ProtobufCIntRange rpc_layer__write_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor rpc_layer__write_response__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "RpcLayer.WriteResponse",
+  "WriteResponse",
+  "RpcLayer__WriteResponse",
+  "RpcLayer",
+  sizeof(RpcLayer__WriteResponse),
+  2,
+  rpc_layer__write_response__field_descriptors,
+  rpc_layer__write_response__field_indices_by_name,
+  1,  rpc_layer__write_response__number_ranges,
+  (ProtobufCMessageInit) rpc_layer__write_response__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCMethodDescriptor rpc_layer__remote_ext2__method_descriptors[4] =
 {
   { "ReadDir", &rpc_layer__read_dir_request__descriptor, &rpc_layer__read_dir_response__descriptor },
   { "GetAttr", &rpc_layer__get_attr_request__descriptor, &rpc_layer__get_attr_response__descriptor },
   { "Read", &rpc_layer__read_request__descriptor, &rpc_layer__read_response__descriptor },
+  { "Write", &rpc_layer__write_request__descriptor, &rpc_layer__write_response__descriptor },
 };
 const unsigned rpc_layer__remote_ext2__method_indices_by_name[] = {
   1,        /* GetAttr */
   2,        /* Read */
-  0         /* ReadDir */
+  0,        /* ReadDir */
+  3         /* Write */
 };
 const ProtobufCServiceDescriptor rpc_layer__remote_ext2__descriptor =
 {
   PROTOBUF_C_SERVICE_DESCRIPTOR_MAGIC,
   "RpcLayer.RemoteExt2",
-  "ReadDir",
+  "Write",
   "RpcLayer__RemoteExt2",
   "RpcLayer",
-  3,
+  4,
   rpc_layer__remote_ext2__method_descriptors,
   rpc_layer__remote_ext2__method_indices_by_name
 };
@@ -641,6 +896,14 @@ void rpc_layer__remote_ext2__read(ProtobufCService *service,
 {
   PROTOBUF_C_ASSERT (service->descriptor == &rpc_layer__remote_ext2__descriptor);
   service->invoke(service, 2, (const ProtobufCMessage *) input, (ProtobufCClosure) closure, closure_data);
+}
+void rpc_layer__remote_ext2__write(ProtobufCService *service,
+                                   const RpcLayer__WriteRequest *input,
+                                   RpcLayer__WriteResponse_Closure closure,
+                                   void *closure_data)
+{
+  PROTOBUF_C_ASSERT (service->descriptor == &rpc_layer__remote_ext2__descriptor);
+  service->invoke(service, 3, (const ProtobufCMessage *) input, (ProtobufCClosure) closure, closure_data);
 }
 void rpc_layer__remote_ext2__init (RpcLayer__RemoteExt2_Service *service,
                                    RpcLayer__RemoteExt2_ServiceDestroy destroy)
