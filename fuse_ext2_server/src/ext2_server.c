@@ -187,7 +187,9 @@ static void ext2_service__write(RpcLayer__RemoteExt2_Service *service,
 		return;
 	}
 
+	ext2_write_inode_data(ext2_server->fs, element, request->data.data, request->offset, request->data.len);
 
+	response.error = false;
 
 	closure(&response, closure_data);
 }

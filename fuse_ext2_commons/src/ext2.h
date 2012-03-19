@@ -193,6 +193,8 @@
 
 	void				ext2_read_inode_data(t_ext2 *, t_ext2_inode *inode, off_t offset, size_t size, uint8_t *buf);
 
+	void 				ext2_write_inode_data(t_ext2 *, t_ext2_inode *inode, const char* buff, off_t offset, size_t size);
+
 	t_list		 		*ext2_list_dir(t_ext2 *, char *dir_path);
 
 	t_ext2_inode 		*ext2_get_element_inode(t_ext2 *, char *path);

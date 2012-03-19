@@ -10,13 +10,16 @@
 
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
 
+//  ---  Blocks Functions  ---
+static bool ext2_add_clusters(t_ext2 *, t_ext2_inode *node, int amount);
+static bool ext2_remove_clusters(t_ext2 *, t_ext2_inode *node, int amount);
 
 //  ---  iNodes Functions  ---
 static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
 static t_ext2_inode *ext2_find_inode(t_ext2 *, t_ext2_inode *root,  char **path);
 static uint32_t ext2_get_inode_block_entry(t_ext2 *, t_ext2_inode *node, uint32_t entry_index);
 static uint32_t ext2_find_block_entry(t_ext2 *, uint32_t base_block, uint8_t base_block_level, uint32_t entry_index);
-
+static void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new_size);
 
 //  ---  Block Group Functions  ---
 static t_ext2_block_group *ext2_block_group_create(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size);
@@ -253,10 +256,12 @@ static t_list *ext2_get_block_directory_entrys(t_ext2 *self, uint8_t *block, t_l
 void ext2_read_inode_data(t_ext2 *self, t_ext2_inode *inode, off_t offset, size_t size, uint8_t *buff){
 	long blocks_offset = offset / self->block_size;
 
-	uint32_t block_to_copy = ext2_get_inode_block_entry(self, inode, blocks_offset);
-	uint8_t *data_to_copy = ext2_get_block(self, block_to_copy);
+	long offset_inside_block = offset - blocks_offset * self->block_size;
 
-	long block_size_to_copy = self->block_size - (offset - blocks_offset * self->block_size);
+	uint32_t block_to_copy = ext2_get_inode_block_entry(self, inode, blocks_offset);
+	uint8_t *data_to_copy = ext2_get_block(self, block_to_copy) + offset_inside_block;
+
+	long block_size_to_copy = self->block_size - offset_inside_block;
 	long size_copied = 0;
 
 	if( block_size_to_copy > size ){
@@ -282,6 +287,76 @@ void ext2_read_inode_data(t_ext2 *self, t_ext2_inode *inode, off_t offset, size_
 		}
 
 	} while (size_copied < size);
+}
+
+void ext2_write_inode_data(t_ext2 *self, t_ext2_inode *inode, const char* buff, off_t offset, size_t size_to_copy){
+	long blocks_offset = floorl((double) offset / (double) self->block_size);
+
+	long offset_inside_block = offset - blocks_offset * self->block_size;
+
+	if( offset + size_to_copy > inode->size ){
+		ext2_resize_inode_data(self, inode, offset + size_to_copy);
+	}
+
+	uint32_t block_to_copy = ext2_get_inode_block_entry(self, inode, blocks_offset);
+	uint8_t *data_to_copy = ext2_get_block(self, block_to_copy) + offset_inside_block;
+
+	long block_size_to_copy = self->block_size - offset_inside_block;
+	long size_copied = 0;
+
+	if( block_size_to_copy > size_to_copy ){
+		block_size_to_copy = size_to_copy;
+	}
+
+	do {
+
+		memcpy(data_to_copy, buff + size_copied, block_size_to_copy);
+
+		size_copied += block_size_to_copy;
+
+		if (size_copied < size_to_copy){
+			blocks_offset++;
+			block_to_copy = ext2_get_inode_block_entry(self, inode, blocks_offset);
+			data_to_copy = ext2_get_block(self, block_to_copy);
+
+			if (size_copied + self->block_size <= size_to_copy) {
+				block_size_to_copy = self->block_size;
+			} else {
+				block_size_to_copy = size_to_copy - size_copied;
+			}
+		}
+
+	} while (size_copied < size_to_copy);
+
+}
+
+static void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new_size){
+	int newSizeInClusters = ceil( (double)new_size / (double)self->block_size );
+	int currSizeInClusters = ceil( (double)inode->size / (double)self->block_size );
+
+
+	if( newSizeInClusters == currSizeInClusters ){
+		return;
+	}
+
+	if( newSizeInClusters > currSizeInClusters ){
+
+		ext2_add_clusters(self, inode, newSizeInClusters - currSizeInClusters);
+
+	} else {
+
+		ext2_remove_clusters(self, inode, currSizeInClusters - newSizeInClusters);
+	}
+
+	inode->size = new_size;
+}
+
+static bool ext2_add_clusters(t_ext2 *self, t_ext2_inode *node, int amount){
+	return true;
+}
+
+static bool ext2_remove_clusters(t_ext2 *self, t_ext2_inode *node, int amount){
+	return true;
 }
 
 inline uint32_t ext2_get_number_of_block_group(t_ext2 *self){
