@@ -11,8 +11,8 @@
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
 
 //  ---  Blocks Functions  ---
-static bool ext2_add_clusters(t_ext2 *, t_ext2_inode *node, int amount);
-static bool ext2_remove_clusters(t_ext2 *, t_ext2_inode *node, int amount);
+static bool ext2_add_inode_free_blocks(t_ext2 *, t_ext2_inode *node, int amount);
+static bool ext2_remove_inode_blocks(t_ext2 *, t_ext2_inode *node, int amount);
 
 //  ---  iNodes Functions  ---
 static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
@@ -351,11 +351,11 @@ static void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new
 	inode->size = new_size;
 }
 
-static bool ext2_add_clusters(t_ext2 *self, t_ext2_inode *node, int amount){
+static bool ext2_add_inode_free_blocks(t_ext2 *self, t_ext2_inode *node, int amount){
 	return true;
 }
 
-static bool ext2_remove_clusters(t_ext2 *self, t_ext2_inode *node, int amount){
+static bool ext2_remove_inode_blocks(t_ext2 *self, t_ext2_inode *node, int amount){
 	return true;
 }
 
