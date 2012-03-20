@@ -11,6 +11,8 @@
 static t_list *ext2_get_block_directory_entrys(t_ext2*, uint8_t *block, t_list *list_to_fill);
 
 //  ---  Blocks Functions  ---
+static int32_t *ext2_get_free_blocks(t_ext2 *, t_ext2_block_group *block_group_delta, int amount);
+static int ext2_get_free_blocks_in_group(t_ext2 *, t_ext2_block_group *block_group, int amount, int32_t *array_to_fill);
 static bool ext2_add_inode_free_blocks(t_ext2 *, t_ext2_inode *node, int amount);
 static bool ext2_remove_inode_blocks(t_ext2 *, t_ext2_inode *node, int amount);
 
@@ -19,13 +21,13 @@ static t_list *ext2_list_inode(t_ext2 *, t_ext2_inode *root);
 static t_ext2_inode *ext2_find_inode(t_ext2 *, t_ext2_inode *root,  char **path);
 static uint32_t ext2_get_inode_block_entry(t_ext2 *, t_ext2_inode *node, uint32_t entry_index);
 static uint32_t ext2_find_block_entry(t_ext2 *, uint32_t base_block, uint8_t base_block_level, uint32_t entry_index);
-static void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new_size);
 
 //  ---  Block Group Functions  ---
+static off_t ext2_get_block_group_offset(t_ext2 *, t_ext2_block_group *block_group);
 static t_ext2_block_group *ext2_block_group_create(uint16_t group_number, uint32_t first_block, bool has_superblock, uint8_t *block_bitmap, uint8_t *inode_bitmap, uint32_t block_size);
 static void ext2_block_group_free(t_ext2_block_group *block_group);
 static t_ext2_block_group *ext2_get_block_group(t_ext2*, uint16_t group_number);
-static uint32_t ext2_get_number_of_block_group(t_ext2 *);
+static uint16_t ext2_get_number_of_block_group(t_ext2 *);
 
 
 //  ---  iNodes Entries Functions  ---
@@ -330,7 +332,7 @@ void ext2_write_inode_data(t_ext2 *self, t_ext2_inode *inode, const char* buff, 
 
 }
 
-static void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new_size){
+void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new_size){
 	int newSizeInClusters = ceil( (double)new_size / (double)self->block_size );
 	int currSizeInClusters = ceil( (double)inode->size / (double)self->block_size );
 
@@ -352,6 +354,17 @@ static void ext2_resize_inode_data(t_ext2 *self, t_ext2_inode *inode, size_t new
 }
 
 static bool ext2_add_inode_free_blocks(t_ext2 *self, t_ext2_inode *node, int amount){
+	t_ext2_block_group *group = ext2_get_block_group(self, 0);
+	int32_t *free_blocks = ext2_get_free_blocks(self, group, amount);
+
+	int data_block_index = 0;
+	for (; data_block_index < self->inode_blocks_amount; data_block_index++) {
+
+
+	}
+
+
+
 	return true;
 }
 
@@ -359,7 +372,72 @@ static bool ext2_remove_inode_blocks(t_ext2 *self, t_ext2_inode *node, int amoun
 	return true;
 }
 
-inline uint32_t ext2_get_number_of_block_group(t_ext2 *self){
+static int32_t *ext2_get_free_blocks(t_ext2 *self, t_ext2_block_group *block_group_delta, int amount){
+	int half_groups = self->number_of_block_groups / 2;
+	int32_t *free_blocks = calloc(amount, sizeof(int32_t));
+
+	int finded_free_blocks = ext2_get_free_blocks_in_group(self, block_group_delta, amount, free_blocks);
+
+	if( finded_free_blocks == amount ){
+		return free_blocks;
+	}
+
+	int offset = 1;
+
+	for(; offset < half_groups; offset++){
+		int left_block_offset = block_group_delta->number - offset;
+		int right_block_offset = block_group_delta->number + offset;
+
+		if( left_block_offset < 0 ){
+			left_block_offset = self->superblock->blockcount - left_block_offset;
+		}
+
+		if( right_block_offset >= self->superblock->blockcount ){
+			right_block_offset = right_block_offset - self->superblock->blockcount;
+		}
+
+		t_ext2_block_group *left_group = ext2_get_block_group(self, left_block_offset);
+		finded_free_blocks += ext2_get_free_blocks_in_group(self, left_group, amount - finded_free_blocks, &free_blocks[finded_free_blocks]);
+		ext2_block_group_free(left_group);
+
+		if( finded_free_blocks == amount ){
+			return free_blocks;
+		}
+
+		t_ext2_block_group *right_group = ext2_get_block_group(self, right_block_offset);
+		finded_free_blocks += ext2_get_free_blocks_in_group(self, right_group, amount - finded_free_blocks, &free_blocks[finded_free_blocks]);
+		ext2_block_group_free(right_group);
+
+		if( finded_free_blocks == amount ){
+			return free_blocks;
+		}
+	}
+
+	free(free_blocks);
+
+	return NULL;
+}
+
+static int ext2_get_free_blocks_in_group(t_ext2 *self, t_ext2_block_group *block_group, int amount, int32_t *array_to_fill){
+	int index, cont;
+
+	off_t block_grupo_offset = ext2_get_block_group_offset(self, block_group->number + 1 );
+
+	for(index = 0, cont = 0; index < bitarray_get_max_bit(block_group->block_bitmap); index++ ){
+
+		bool state = bitarray_test_bit(block_group->block_bitmap, index);
+
+		if( state ){
+			bitarray_set_bit(block_group->block_bitmap, index);
+			array_to_fill[cont] = block_grupo_offset + index;
+			cont++;
+		}
+	}
+
+	return cont;
+}
+
+inline uint16_t ext2_get_number_of_block_group(t_ext2 *self){
 	return floor((double)(self->superblock->blockcount - self->superblock->first_data_block) / (double)(self->superblock->blockper_group));
 }
 
@@ -411,6 +489,28 @@ inline static t_ext2_block_group *ext2_block_group_create(uint16_t group_number,
 	block_group->inode_bitmap = bitarray_create(inode_bitmap, block_size);
 
 	return block_group;
+}
+
+static off_t ext2_get_block_group_offset(t_ext2 *self, uint16_t block_group){
+	off_t block_offset = self->superblock->first_data_block;
+
+	int index;
+	for(index=0; index < block_group; index++){
+
+		if( ext2_has_superblock(block_group) ){
+			index ++;	// 1 block for superblock
+			index ++;	// 1 block for block group descriptor table
+		}
+
+		index ++;	// 1 block for block bitmap
+		index ++;	// 1 block for inode bitmap
+
+		index += self->block_size / self->superblock->inode_size;	// X for the inode table
+
+		index += self->superblock->blockper_group;
+	}
+
+	return block_offset;
 }
 
 inline static void ext2_block_group_free(t_ext2_block_group *block_group){

@@ -145,7 +145,7 @@
 	}__attribute__ ((packed)) t_ext2_inode;
 
 	typedef struct {
-		uint32_t number;
+		uint16_t number;
 		uint32_t first_block;
 		bool has_superblock;
 
@@ -180,7 +180,7 @@
 		uint32_t block_size;
 		uint32_t inode_blocks_amount;
 		uint32_t entries_per_block;
-		uint32_t number_of_block_groups;
+		uint16_t number_of_block_groups;
 	} t_ext2;
 
 	t_ext2				*ext2_create(char *device);
@@ -188,13 +188,11 @@
 	uint8_t 			*ext2_get_block(t_ext2 *, uint16_t block_number);
 
 	t_ext2_inode 		*ext2_get_root_inode(t_ext2 *);
-
 	t_ext2_inode		*ext2_get_inode(t_ext2 *, uint32_t inode_index);
+	void				 ext2_read_inode_data(t_ext2 *, t_ext2_inode *inode, off_t offset, size_t size, uint8_t *buf);
+	void 				 ext2_write_inode_data(t_ext2 *, t_ext2_inode *inode, const char* buff, off_t offset, size_t size);
 
-	void				ext2_read_inode_data(t_ext2 *, t_ext2_inode *inode, off_t offset, size_t size, uint8_t *buf);
-
-	void 				ext2_write_inode_data(t_ext2 *, t_ext2_inode *inode, const char* buff, off_t offset, size_t size);
-
+	void 				 ext2_resize_inode_data(t_ext2 *, t_ext2_inode *inode, size_t new_size);
 	t_list		 		*ext2_list_dir(t_ext2 *, char *dir_path);
 
 	t_ext2_inode 		*ext2_get_element_inode(t_ext2 *, char *path);
